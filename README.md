@@ -24,6 +24,16 @@ Declarative NixOS and Home Manager configuration for the `nixos` host.
     └── ryuk/
 ```
 
+## Documentation
+
+完整的中文配置说明见 [`docs/README.md`](docs/README.md)：
+
+- [架构与模块关系](docs/architecture.md)
+- [系统与主机配置](docs/system.md)
+- [桌面与输入法](docs/desktop-and-input.md)
+- [Home Manager 用户环境](docs/home-manager.md)
+- [日常维护与部署](docs/operations.md)
+
 ## Check
 
 ```bash
