@@ -2,15 +2,17 @@
 
 ## 基础系统
 
-`modules/nixos/base.nix` 定义以下基础行为：
+`modules/nixos/base.nix` 定义可被多台机器复用的基础行为：
 
-- 主机名为 `nixos`。
 - 使用 NetworkManager 管理网络连接。
 - 时区为 `Asia/Tokyo`。
 - 默认 locale 为 `en_US.UTF-8`。
 - 启用 Nix 新命令和 flakes：`nix-command`、`flakes`。
 - 启用 Nix Store 自动优化，合并内容相同的 Store 文件以减少重复占用。
 - 将 `/share/zsh` 暴露到系统环境，供 Home Manager 管理的 Zsh 使用系统包提供的补全定义。
+
+主机名不是公共设置。当前 `hosts/nixos/default.nix` 单独将主机名声明为
+`nixos`，未来实体机应在自己的主机入口中使用不同名称。
 
 ## 用户
 
@@ -88,9 +90,11 @@ OpenSSH 服务已启用，策略如下：
 
 ## VMware 客户机
 
-`modules/nixos/optional/vmware-guest.nix` 当前由 flake 显式加载：
+`modules/nixos/optional/vmware-guest.nix` 当前仅由
+`hosts/nixos/default.nix` 显式加载：
 
 - 启用 VMware Guest 支持。
 - `headless = false`，按带图形桌面的虚拟机配置。
 
-如果未来把同一仓库用于实体机或其他虚拟化平台，应为不同主机建立独立输出，并只给 VMware 主机加载该模块。
+如果未来把同一仓库用于实体机或其他虚拟化平台，应为不同主机建立独立输出，
+并只给 VMware 主机加载该模块。参见[在实体机上安装](installing-physical-machine.md)。

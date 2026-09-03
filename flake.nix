@@ -13,21 +13,17 @@
   outputs =
     { nixpkgs, home-manager, ... }:
     let
-      commonModules = [
-        home-manager.nixosModules.home-manager
-        ./hosts/nixos
-      ];
-
-      mkSystem = additionalModules:
+      mkSystem = hostModule:
         nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          modules = commonModules ++ additionalModules;
+          modules = [
+            home-manager.nixosModules.home-manager
+            hostModule
+          ];
         };
     in
     {
       # The output name matches the current hostname, so `--flake .` selects it.
-      nixosConfigurations.nixos = mkSystem [
-        ./modules/nixos/optional/vmware-guest.nix
-      ];
+      nixosConfigurations.nixos = mkSystem ./hosts/nixos;
     };
 }

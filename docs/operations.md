@@ -40,6 +40,14 @@ sudo nixos-rebuild switch --flake ~/nixos-config
 
 `switch` 会构建新系统、设置为默认启动代际，并立即激活可以在线切换的服务和用户环境。Home Manager 已集成到 NixOS，因此无需再单独执行 `home-manager switch`。
 
+当前 flake 只有 `nixos` 一个输出，也可以显式指定：
+
+```bash
+sudo nixos-rebuild switch --flake ~/nixos-config#nixos
+```
+
+增加实体机输出后，建议始终写明 `#主机输出名`，避免对错误机器应用配置。
+
 ## 测试而不设为默认启动项
 
 ```bash
@@ -108,3 +116,4 @@ LazyGit 常用键：
 - 修改 Plasma、软件、字体或输入法：更新 `desktop-and-input.md`。
 - 修改用户程序和 shell：更新 `home-manager.md`。
 - 修改部署、更新或维护流程：更新本文件。
+- 修改实体机安装和新增主机流程：更新 `installing-physical-machine.md`。

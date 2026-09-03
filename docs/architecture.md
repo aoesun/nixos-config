@@ -11,39 +11,53 @@
 
 ## 系统输出
 
-flake 只定义一个 NixOS 输出：
+flake 当前定义一个 NixOS 输出：
 
 ```text
 nixosConfigurations.nixos
 ```
 
-目标平台为 `x86_64-linux`。输出名称与主机名相同，因此在仓库目录中执行 `nixos-rebuild switch --flake .` 时，Nix 可以自动选择正确配置。
+目标平台为 `x86_64-linux`。`mkSystem` 接收一个主机模块，将 Home Manager 的
+NixOS 模块与该主机入口组合起来。输出名称与主机名相同，因此在仓库目录中执行
+`nixos-rebuild switch --flake .` 时，Nix 可以自动选择当前唯一配置。
 
 ## 模块加载关系
 
 ```text
 flake.nix
 ├── home-manager.nixosModules.home-manager
-├── hosts/nixos/default.nix
-│   ├── hosts/nixos/hardware-configuration.nix
-│   ├── modules/nixos/base.nix
-│   ├── modules/nixos/boot.nix
-│   ├── modules/nixos/desktop.nix
-│   ├── modules/nixos/ssh.nix
-│   └── modules/nixos/home-manager.nix
-│       └── home/ryuk/default.nix
-│           ├── home/ryuk/programs/tools.nix
-│           ├── home/ryuk/programs/vim.nix
-│           ├── home/ryuk/programs/yazi.nix
-│           └── home/ryuk/programs/zsh.nix
-└── modules/nixos/optional/vmware-guest.nix
+└── hosts/nixos/default.nix
+    ├── hosts/nixos/hardware-configuration.nix
+    ├── modules/nixos/base.nix
+    ├── modules/nixos/boot.nix
+    ├── modules/nixos/desktop.nix
+    ├── modules/nixos/ssh.nix
+    ├── modules/nixos/optional/vmware-guest.nix
+    └── modules/nixos/home-manager.nix
+        └── home/ryuk/default.nix
+            ├── home/ryuk/programs/tools.nix
+            ├── home/ryuk/programs/vim.nix
+            ├── home/ryuk/programs/yazi.nix
+            └── home/ryuk/programs/zsh.nix
 ```
 
-`mkSystem` 接受额外模块列表。当前 `nixos` 输出始终加入 `vmware-guest.nix`，所以这台主机被明确视为 VMware 图形客户机；该模块虽位于 `optional/`，目前并不是未启用状态。
+`vmware-guest.nix` 由 `hosts/nixos/default.nix` 导入，因此 VMware 支持只属于
+当前主机，不会隐式影响未来的实体机。该模块虽位于 `optional/`，对当前 `nixos`
+主机仍是启用状态。
+
+未来增加实体机时，应新建独立的 `hosts/<主机名>/`，并在 flake 中新增输出：
+
+```nix
+nixosConfigurations.workstation = mkSystem ./hosts/workstation;
+```
+
+实体机入口可以复用 `base.nix`、`boot.nix`、`desktop.nix`、`ssh.nix` 和
+`home-manager.nix`，但不得导入 VMware 模块，也不得复用虚拟机的
+`hardware-configuration.nix`。完整流程见[在实体机上安装](installing-physical-machine.md)。
 
 ## 配置职责
 
-- `hosts/` 保存与某台机器直接相关的入口和硬件信息。
+- `hosts/` 保存与某台机器直接相关的主机名、入口、硬件信息和主机专用模块。
 - `modules/nixos/` 保存系统级功能，可供未来其他主机复用。
 - `home/` 保存用户级配置，由 Home Manager 管理。
 - `docs/` 保存与上述配置同步的说明文档。
