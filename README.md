@@ -33,6 +33,7 @@ Declarative NixOS and Home Manager configuration for the `nixos` host.
 - [桌面与输入法](docs/desktop-and-input.md)
 - [Home Manager 用户环境](docs/home-manager.md)
 - [日常维护与部署](docs/operations.md)
+- [更新软件与内核](docs/updating.md)
 - [在实体机上安装](docs/installing-physical-machine.md)
 
 ## Check

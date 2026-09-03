@@ -9,6 +9,7 @@
 - [桌面与输入法](desktop-and-input.md)：KDE Plasma、桌面软件、字体、Fcitx5 和 Rime 自然码设置。
 - [Home Manager 用户环境](home-manager.md)：用户级软件、Vim、Yazi、Zsh 和命令行体验。
 - [日常维护与部署](operations.md)：检查、重建、更新、回滚和 Git 工作流。
+- [更新软件与内核](updating.md)：更新 Flake 输入、比较版本、切换系统和处理内核更新。
 - [在实体机上安装](installing-physical-machine.md)：新增实体机主机输出、生成硬件配置及安装流程。
 
 ## 配置文件索引

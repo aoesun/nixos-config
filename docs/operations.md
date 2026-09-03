@@ -66,6 +66,9 @@ nix flake update
 
 更新后应审阅 `flake.lock` 的差异，再运行检查和重建。不要因为更新 nixpkgs 就修改 `system.stateVersion` 或 `home.stateVersion`。
 
+完整的更新前检查、版本比较、内核重启和故障回滚流程见
+[更新软件与内核](updating.md)。
+
 ## 回滚
 
 若刚切换的配置有问题，可以回滚到上一个系统代际：
@@ -116,4 +119,5 @@ LazyGit 常用键：
 - 修改 Plasma、软件、字体或输入法：更新 `desktop-and-input.md`。
 - 修改用户程序和 shell：更新 `home-manager.md`。
 - 修改部署、更新或维护流程：更新本文件。
+- 修改软件和内核更新流程：更新 `updating.md`。
 - 修改实体机安装和新增主机流程：更新 `installing-physical-machine.md`。
