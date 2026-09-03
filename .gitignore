@@ -1,0 +1,26 @@
+# Nix build outputs
+result
+result-*
+
+# Home Manager backups
+*.hm-backup
+
+# Direnv
+.direnv/
+.envrc.local
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+id_rsa
+id_ed25519
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
