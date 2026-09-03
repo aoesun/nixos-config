@@ -53,15 +53,14 @@ Vim 被设为默认编辑器，主要行为为：
 
 Yazi 是终端文件管理器，并集成 Zsh。shell wrapper 名称为 `y`，可在退出 Yazi 后将 shell 切换到最后所在目录。
 
-辅助软件：
+当前 nixpkgs 的 Yazi 包已在自身包装器中提供 `file`、`jq`、
+`poppler-utils`、`7zz`、`ffmpeg-headless`、`fd`、`ripgrep`、`fzf`、
+`zoxide`、ImageMagick、`chafa` 和 `resvg`，用于文件识别、预览、搜索、
+筛选、归档处理及目录跳转，不需要在 Home Manager 中重复声明。
 
-- `fd`：快速查找文件。
-- `file`：识别文件类型。
-- `fzf`：模糊筛选。
-- `jq`：处理 JSON。
-- `ripgrep`：快速文本搜索。
-- `unar`：解压归档文件。
-- `zoxide`：智能目录跳转。
+配置仅通过 `extraPackages` 额外加入 `wl-clipboard`，提供 Wayland 会话所需的
+`wl-copy` 和 `wl-paste` 剪贴板命令。桌面模块安装的 Fira Code Nerd Font 则为
+Yazi 界面提供图标字形。
 
 界面设置：显示隐藏文件、自然排序、目录优先，并以文件大小作为列表行信息。
 

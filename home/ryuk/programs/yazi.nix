@@ -5,15 +5,10 @@
     enableZshIntegration = true;
     shellWrapperName = "y";
 
-    # These utilities enable previews, filtering, archives, and jump plugins.
+    # Yazi's Nix package already includes its recommended preview and search
+    # tools. Add the native clipboard helper needed by the Wayland session.
     extraPackages = with pkgs; [
-      fd
-      file
-      fzf
-      jq
-      ripgrep
-      unar
-      zoxide
+      wl-clipboard
     ];
 
     settings.mgr = {
