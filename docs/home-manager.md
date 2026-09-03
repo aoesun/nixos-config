@@ -34,6 +34,21 @@ Home Manager 作为 NixOS 模块加载，而不是独立执行：
 
 认证状态和服务商凭据明确保存在仓库外，不能加入 Nix 文件或 Git 提交。
 
+## SSH 客户端与 GitHub
+
+Home Manager 生成 `~/.ssh/config` 中的 `github.com` 主机块：
+
+- 不生成 Home Manager 的旧式隐式默认主机块，未声明项使用 OpenSSH 默认值。
+- 连接用户固定为 `git`。
+- 身份文件为 `~/.ssh/id_ed25519`。
+- `IdentitiesOnly` 避免尝试无关密钥。
+- `AddKeysToAgent = "yes"` 使首次成功使用的密钥自动加入正在运行的
+  `ssh-agent`。
+
+每次重新登录后，首次访问 GitHub 时仍需输入一次私钥 passphrase；之后 LazyGit
+和 Git 可复用 agent 缓存。私钥及 passphrase 不由 Home Manager 管理，也绝不能
+提交到仓库。
+
 ## Vim
 
 Vim 被设为默认编辑器，主要行为为：

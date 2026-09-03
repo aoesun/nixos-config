@@ -1,5 +1,8 @@
 { ... }:
 {
+  # Cache unlocked SSH keys for the duration of the desktop login session.
+  programs.ssh.startAgent = true;
+
   services.openssh = {
     enable = true;
     settings = {

@@ -79,6 +79,13 @@ OpenSSH 服务已启用，策略如下：
 
 因此远程管理应先登录普通用户，再通过 sudo 提权。当前配置允许密码认证，暴露到不可信网络前建议改为 SSH 公钥认证，并在确认公钥可用后关闭密码认证。
 
+## SSH Agent
+
+系统在用户登录时启动 OpenSSH agent，并通过 `$XDG_RUNTIME_DIR/ssh-agent` 提供
+会话套接字。agent 在内存中缓存已经解锁的私钥，避免同一个桌面登录会话内每次
+执行 Git push 都重复输入私钥 passphrase。默认没有额外超时，注销后缓存失效，
+私钥文件本身仍受 passphrase 保护。
+
 ## VMware 客户机
 
 `modules/nixos/optional/vmware-guest.nix` 当前由 flake 显式加载：
