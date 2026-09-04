@@ -49,6 +49,18 @@ Home Manager 生成 `~/.ssh/config` 中的 `github.com` 主机块：
 和 Git 可复用 agent 缓存。私钥及 passphrase 不由 Home Manager 管理，也绝不能
 提交到仓库。
 
+## Navi cheats
+
+个人 Navi cheats 使用软件原生的 `.cheat` 格式，保存在独立的公开仓库
+`aoesun/dotfiles` 的 `navi/` 目录中。该仓库作为非 flake 输入由 `flake.lock`
+锁定，Home Manager 将目录递归部署到
+`~/.local/share/navi/cheats/personal/`。
+
+更新远端 dotfiles 后，在 `nixos-config` 中执行
+`nix flake update dotfiles` 更新锁定提交，再重建系统。旧的
+`~/.local/share/navi/cheats/ryuk__cheats/` 不由 Home Manager 管理；确认新目录
+生效后应避免继续同时维护两份，以免 Navi 显示重复命令。
+
 ## Vim
 
 Vim 被设为默认编辑器，主要行为为：

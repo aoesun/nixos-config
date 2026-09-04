@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ dotfiles, pkgs, ... }:
 {
   home.packages = with pkgs; [
     tree
@@ -33,5 +33,10 @@
       enable = true;
       enableZshIntegration = true;
     };
+  };
+
+  xdg.dataFile."navi/cheats/personal" = {
+    source = "${dotfiles}/navi";
+    recursive = true;
   };
 }

@@ -9,6 +9,10 @@
 
 精确修订记录在 `flake.lock` 中，因此日常重建具有可重复性。只有执行 `nix flake update` 或显式更新某个输入时，锁定版本才会变化。
 
+`dotfiles` 输入指向公开的 `aoesun/dotfiles` 仓库，并设置 `flake = false`，因此它
+只作为普通文件树使用，不需要提供自己的 `flake.nix`。当前 Home Manager 从中部署
+Navi cheats。
+
 ## 系统输出
 
 flake 当前定义一个 NixOS 输出：

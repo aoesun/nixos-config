@@ -8,14 +8,25 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    dotfiles = {
+      url = "github:aoesun/dotfiles";
+      flake = false;
+    };
   };
 
   outputs =
-    { nixpkgs, home-manager, ... }:
+    {
+      nixpkgs,
+      home-manager,
+      dotfiles,
+      ...
+    }:
     let
       mkSystem = hostModule:
         nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
+          specialArgs = { inherit dotfiles; };
           modules = [
             home-manager.nixosModules.home-manager
             hostModule
