@@ -65,9 +65,13 @@ in
       fastfetch
     ];
     plasma6.excludePackages = with pkgs.kdePackages; [
+      ark
+      discover
       elisa
       khelpcenter
       kwin-x11
+      okular
+      qrca
     ];
   };
 }

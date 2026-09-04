@@ -53,6 +53,7 @@ Home Manager 生成 `~/.ssh/config` 中的 `github.com` 主机块：
 
 Vim 被设为默认编辑器，主要行为为：
 
+- 显式使用无图形界面的 `pkgs.vim`，不安装 GVim。
 - 使用空格代替 Tab。
 - Tab 宽度和缩进宽度均为 2。
 - 显示行号与当前行。

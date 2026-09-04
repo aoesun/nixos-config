@@ -1,8 +1,9 @@
-{ ... }:
+{ pkgs, ... }:
 {
   programs.vim = {
     enable = true;
     defaultEditor = true;
+    packageConfigurable = pkgs.vim;
 
     settings = {
       expandtab = true;

@@ -6,11 +6,17 @@
 
 从 Plasma 默认软件集合中排除了：
 
+- Ark 压缩包管理器
+- Discover 软件中心
 - Elisa 音乐播放器
 - KHelpCenter 帮助中心
 - KWin X11 会话组件
+- Okular 文档查看器
+- QRca 二维码工具
 
 排除 `kwin-x11` 表明配置面向 Wayland，不提供 KWin 的 X11 会话。
+
+Kate 和 KWrite 由同一个 `kate` 软件包提供，无法在软件包层面只安装其中一个，当前两者都予以保留。
 
 ## 字体和桌面软件
 
