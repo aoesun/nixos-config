@@ -53,6 +53,14 @@ in
     };
   };
 
+  programs.chromium = {
+    enable = true;
+    extensions = [
+      "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
+      "ddkjiahejlhfcafbddmgiahcphecmpfh" # uBlock Origin Lite
+    ];
+  };
+
   services = {
     desktopManager.plasma6.enable = true;
     displayManager.plasma-login-manager.enable = true;

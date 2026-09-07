@@ -28,6 +28,17 @@ Kate 和 KWrite 由同一个 `kate` 软件包提供，无法在软件包层面�
 - Chromium：网页浏览器。
 - Fastfetch：显示系统和硬件摘要。
 
+Chromium 通过系统级 managed policy 强制安装以下扩展：
+
+- Vimium：使用类似 Vim 的键盘操作浏览网页。
+- uBlock Origin Lite：适用于 Chromium Manifest V3 的广告和跟踪内容拦截器。
+
+NixOS 锁定的是扩展 ID，而不是 Chrome Web Store 中的扩展版本；Chromium 启动后
+联网下载和更新扩展。受浏览器安全限制，系统策略不能替用户启用“允许在无痕模式下
+运行”。首次安装后需要分别进入 `chrome://extensions`，打开扩展详情并手动启用
+该选项。扩展自身的用户设置仍保存在 Chromium 用户资料中，除非扩展明确提供可用
+的 managed-storage 策略。
+
 安装软件并不代表其用户设置也是声明式的。例如 Bitwarden 的登录状态、自启动开关和 Chromium 的个人资料仍保存在用户目录中，不由本仓库管理。
 
 ## Fcitx5
