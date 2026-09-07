@@ -9,6 +9,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Reserved as a reproducible source for configurations that should live in
+    # the Nix Store. Frequently edited Navi cheats use the local checkout.
     dotfiles = {
       url = "github:aoesun/dotfiles";
       flake = false;
@@ -19,14 +21,12 @@
     {
       nixpkgs,
       home-manager,
-      dotfiles,
       ...
     }:
     let
       mkSystem = hostModule:
         nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { inherit dotfiles; };
           modules = [
             home-manager.nixosModules.home-manager
             hostModule

@@ -52,12 +52,14 @@ Home Manager 生成 `~/.ssh/config` 中的 `github.com` 主机块：
 ## Navi cheats
 
 个人 Navi cheats 使用软件原生的 `.cheat` 格式，保存在独立的公开仓库
-`aoesun/dotfiles` 的 `navi/` 目录中。该仓库作为非 flake 输入由 `flake.lock`
-锁定，Home Manager 将目录递归部署到
-`~/.local/share/navi/cheats/personal/`。
+`aoesun/dotfiles` 的 `navi/` 目录中。本机仓库固定克隆到 `~/dotfiles`；Home
+Manager 使用 `mkOutOfStoreSymlink` 将 `~/dotfiles/navi` 实时链接为
+`~/.local/share/navi/cheats/personal/`。修改、新增或删除 cheat 后 Navi 可以立即
+读取，不需要推送远端或重建系统；内容稳定后再由 Git 提交并推送。
 
-更新远端 dotfiles 后，在 `nixos-config` 中执行
-`nix flake update dotfiles` 更新锁定提交，再重建系统。旧的
+这种 Store 外链接由 Home Manager 管理部署关系，但文件内容不进入 Nix Store，
+因此系统 generation 不负责回滚 cheat，内容版本应通过 dotfiles 仓库的 Git 历史
+恢复。新机器应用 NixOS 配置前，应先将公开仓库克隆到 `~/dotfiles`。旧的
 `~/.local/share/navi/cheats/ryuk__cheats/` 不由 Home Manager 管理；确认新目录
 生效后应避免继续同时维护两份，以免 Navi 显示重复命令。
 

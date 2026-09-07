@@ -2,16 +2,17 @@
 
 ## Flake 输入
 
-根目录的 `flake.nix` 使用两个输入：
+根目录的 `flake.nix` 使用三个输入：
 
 - `nixpkgs`：跟踪 `NixOS/nixpkgs` 的 `nixos-26.05` 分支。
 - `home-manager`：跟踪 `nix-community/home-manager` 的 `release-26.05` 分支，并让其 `nixpkgs` 输入跟随系统的 nixpkgs，避免两套软件包版本不一致。
+- `dotfiles`：将公开的 `aoesun/dotfiles` 仓库作为普通文件树锁定，预留给以后适合进入 Nix Store 的原生配置。
 
 精确修订记录在 `flake.lock` 中，因此日常重建具有可重复性。只有执行 `nix flake update` 或显式更新某个输入时，锁定版本才会变化。
 
-`dotfiles` 输入指向公开的 `aoesun/dotfiles` 仓库，并设置 `flake = false`，因此它
-只作为普通文件树使用，不需要提供自己的 `flake.nix`。当前 Home Manager 从中部署
-Navi cheats。
+当前 Navi cheats 不使用锁定的 `dotfiles` 输入，而是通过 Store 外符号链接直接读取
+本机 `~/dotfiles/navi`，以便保存后立即生效。等其他软件配置加入 dotfiles 时，再
+根据编辑频率、回滚和可复现需求决定使用锁定输入还是实时链接。
 
 ## 系统输出
 

@@ -65,7 +65,7 @@ nix flake update
 
 - `nixpkgs`：NixOS、内核及大多数软件包。
 - `home-manager`：用户环境管理模块。
-- `dotfiles`：Home Manager 部署的原生用户配置和 Navi cheats。
+- `dotfiles`：预留的原生配置文件来源；当前 Navi 实时链接不依赖其锁定版本。
 
 Home Manager 的 nixpkgs 输入跟随系统 nixpkgs，确保系统与用户配置使用同一套
 软件包集合。
@@ -77,12 +77,6 @@ nix flake update nixpkgs
 ```
 
 通常建议一起更新全部输入，以保持相同发布分支上的兼容性。
-
-如果只更新 dotfiles 仓库的锁定提交，可以执行：
-
-```bash
-nix flake update dotfiles
-```
 
 更新命令只修改 `flake.lock`，不会立即安装软件或改变当前系统。
 

@@ -1,4 +1,4 @@
-{ dotfiles, pkgs, ... }:
+{ config, pkgs, ... }:
 {
   home.packages = with pkgs; [
     tree
@@ -35,8 +35,6 @@
     };
   };
 
-  xdg.dataFile."navi/cheats/personal" = {
-    source = "${dotfiles}/navi";
-    recursive = true;
-  };
+  xdg.dataFile."navi/cheats/personal".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/navi";
 }
