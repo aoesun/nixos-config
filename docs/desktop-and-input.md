@@ -27,6 +27,7 @@ Kate 和 KWrite 由同一个 `kate` 软件包提供，无法在软件包层面�
 - Bitwarden Desktop：密码管理客户端。
 - Chromium：网页浏览器。
 - Fastfetch：显示系统和硬件摘要。
+- GoldenDict-ng：支持多种离线辞书格式的 Qt6 词典查询工具。
 
 Chromium 通过系统级 managed policy 强制安装以下扩展：
 
@@ -40,6 +41,11 @@ NixOS 锁定的是扩展 ID，而不是 Chrome Web Store 中的扩展版本；Ch
 的 managed-storage 策略。
 
 安装软件并不代表其用户设置也是声明式的。例如 Bitwarden 的登录状态、自启动开关和 Chromium 的个人资料仍保存在用户目录中，不由本仓库管理。
+
+GoldenDict-ng 的界面偏好和辞书路径属于小型配置，后续可根据修改频率选择 Home
+Manager 的 Store 内文件或 `mkOutOfStoreSymlink`。辞书本体通常体积较大，并且
+可能受再分发许可或版权约束，不放入公开的 dotfiles 仓库；应保存在独立数据目录，
+通过合法下载来源、私人备份或单独的数据同步方案恢复。
 
 ## Fcitx5
 

@@ -71,6 +71,7 @@ in
       bitwarden-desktop
       chromium
       fastfetch
+      goldendict-ng
     ];
     plasma6.excludePackages = with pkgs.kdePackages; [
       ark
