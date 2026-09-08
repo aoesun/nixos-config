@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./programs/neovim.nix
     ./programs/tools.nix
     ./programs/vim.nix
     ./programs/yazi.nix
