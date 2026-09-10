@@ -9,6 +9,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    spicetify-nix = {
+      url = "github:Gerg-L/spicetify-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Reserved as a reproducible source for configurations that should live in
     # the Nix Store. Frequently edited Navi cheats use the local checkout.
     dotfiles = {
@@ -21,12 +26,20 @@
     {
       nixpkgs,
       home-manager,
+      spicetify-nix,
       ...
     }:
     let
+      system = "x86_64-linux";
+
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "spotify";
+      };
+
       mkSystem = hostModule:
         nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+          inherit system;
           modules = [
             home-manager.nixosModules.home-manager
             hostModule
@@ -36,5 +49,10 @@
     {
       # The output name matches the current hostname, so `--flake .` selects it.
       nixosConfigurations.nixos = mkSystem ./hosts/nixos;
+
+      # Custom packages are exported for explicit installation with `nix profile`.
+      packages.${system} = import ./packages {
+        inherit pkgs spicetify-nix;
+      };
     };
 }
