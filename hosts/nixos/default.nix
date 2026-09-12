@@ -4,7 +4,7 @@
     ./hardware-configuration.nix
     ../../modules/core
     ../../modules/profiles/desktop.nix
-    ../../modules/nixos/home-manager.nix
+    ../../modules/integrations/home-manager.nix
     ../../modules/nixos/optional/vmware-guest.nix
   ];
 
