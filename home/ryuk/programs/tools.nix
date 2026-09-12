@@ -1,11 +1,5 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 {
-  home.packages = with pkgs; [
-    jq
-    tree
-    wget
-  ];
-
   programs = {
     # Keep authentication state and provider credentials outside this repository.
     codex.enable = true;

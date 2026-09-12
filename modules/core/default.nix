@@ -7,6 +7,7 @@
     ./nix.nix
     ./programs.nix
     ./ssh.nix
+    ./tools.nix
     ./users.nix
   ];
 }
