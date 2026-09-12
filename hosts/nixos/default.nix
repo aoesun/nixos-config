@@ -3,7 +3,7 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/core
-    ../../modules/nixos/desktop.nix
+    ../../modules/profiles/desktop.nix
     ../../modules/nixos/home-manager.nix
     ../../modules/nixos/optional/vmware-guest.nix
   ];

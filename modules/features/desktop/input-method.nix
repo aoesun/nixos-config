@@ -21,8 +21,6 @@ let
   };
 in
 {
-  fonts.packages = [ pkgs.nerd-fonts.fira-code ];
-
   i18n.inputMethod = {
     enable = true;
     type = "fcitx5";
@@ -51,36 +49,5 @@ in
         GroupOrder."0" = "Default";
       };
     };
-  };
-
-  programs.chromium = {
-    enable = true;
-    extensions = [
-      "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
-      "ddkjiahejlhfcafbddmgiahcphecmpfh" # uBlock Origin Lite
-    ];
-  };
-
-  services = {
-    desktopManager.plasma6.enable = true;
-    displayManager.plasma-login-manager.enable = true;
-  };
-
-  environment = {
-    systemPackages = with pkgs; [
-      bitwarden-desktop
-      chromium
-      fastfetch
-      goldendict-ng
-    ];
-    plasma6.excludePackages = with pkgs.kdePackages; [
-      ark
-      discover
-      elisa
-      khelpcenter
-      kwin-x11
-      okular
-      qrca
-    ];
   };
 }
