@@ -2,10 +2,8 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/nixos/base.nix
-    ../../modules/nixos/boot.nix
+    ../../modules/core
     ../../modules/nixos/desktop.nix
-    ../../modules/nixos/ssh.nix
     ../../modules/nixos/home-manager.nix
     ../../modules/nixos/optional/vmware-guest.nix
   ];
