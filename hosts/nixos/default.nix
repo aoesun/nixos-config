@@ -5,7 +5,7 @@
     ../../modules/core
     ../../modules/profiles/desktop.nix
     ../../modules/integrations/home-manager.nix
-    ../../modules/nixos/optional/vmware-guest.nix
+    ../../modules/features/virtualization/vmware-guest.nix
   ];
 
   networking.hostName = "nixos";
