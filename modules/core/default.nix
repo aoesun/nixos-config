@@ -9,5 +9,6 @@
     ./ssh.nix
     ./tools.nix
     ./users.nix
+    ./yazi.nix
   ];
 }

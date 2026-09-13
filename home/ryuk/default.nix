@@ -2,7 +2,6 @@
 {
   imports = [
     ./programs/tools.nix
-    ./programs/yazi.nix
     ./programs/zsh.nix
   ];
 

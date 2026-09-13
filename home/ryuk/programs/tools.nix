@@ -23,11 +23,6 @@
       enable = true;
       enableZshIntegration = true;
     };
-
-    zoxide = {
-      enable = true;
-      enableZshIntegration = true;
-    };
   };
 
   xdg.dataFile."navi/cheats/personal".source =
