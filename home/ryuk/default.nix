@@ -1,7 +1,6 @@
 { ... }:
 {
   imports = [
-    ../features/codex.nix
     ./programs/tools.nix
     ./programs/zsh.nix
   ];

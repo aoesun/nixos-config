@@ -1,10 +1,8 @@
 { config, ... }:
 {
   programs = {
-    # Keep authentication state and provider credentials outside this repository.
     git.enable = true;
     lazygit.enable = true;
-    opencode.enable = true;
 
     ssh = {
       enable = true;
