@@ -10,6 +10,7 @@ spicetify-nix.lib.mkSpicetify pkgs {
   enabledExtensions = with spicePkgs.extensions; [
     adblockify
     shuffle
+    popupLyrics
   ];
 
   enabledCustomApps = with spicePkgs.apps; [
