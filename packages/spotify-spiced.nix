@@ -13,6 +13,16 @@ spicetify-nix.lib.mkSpicetify pkgs {
     popupLyrics
   ];
 
+  enabledSnippets = [
+    ''
+      /* Hide Spotify home-page ads without relying on generated class names. */
+      [data-testid="home-ads-container"],
+      [data-testid="home-ad-card"] {
+        display: none !important;
+      }
+    ''
+  ];
+
   enabledCustomApps = with spicePkgs.apps; [
     marketplace
   ];
