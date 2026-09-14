@@ -53,11 +53,28 @@
         "type": "github"
       }
     },
+    "rime-ice": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789040462,
+        "narHash": "sha256-ZPIeDMgbe/syIDLR0gVkKbBKbq4QHaEDlqHp+Voc518=",
+        "owner": "iDvel",
+        "repo": "rime-ice",
+        "rev": "859e3b5300e0ea01334a627b15db101e94312a75",
+        "type": "github"
+      },
+      "original": {
+        "owner": "iDvel",
+        "repo": "rime-ice",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "dotfiles": "dotfiles",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
+        "rime-ice": "rime-ice",
         "spicetify-nix": "spicetify-nix"
       }
     },

@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  rimeIce,
+  ...
+}:
 let
   rimeCustomData = pkgs.symlinkJoin {
     name = "rime-custom-data";
@@ -11,14 +15,32 @@ let
       '')
       (pkgs.writeTextDir "share/rime-data/double_pinyin.custom.yaml" ''
         patch:
-          # The third switch is the traditional-to-simplified filter.
-          "switches/@2/reset": 1
+          # The third switch selects simplified or traditional Chinese.
+          "switches/@2/reset": 0
           "menu/page_size": 7
           # Show the raw double-pinyin code instead of expanding it to full pinyin.
           "translator/preedit_format": []
       '')
+      (pkgs.writeTextDir "share/rime-data/melt_eng.custom.yaml" ''
+        patch:
+          # Adapt English candidates to natural-code double pinyin.
+          "speller/algebra":
+            __include: algebra_double_pinyin
+      '')
+      (pkgs.writeTextDir "share/rime-data/radical_pinyin.custom.yaml" ''
+        patch:
+          # Adapt component lookup to natural-code double pinyin.
+          "speller/algebra":
+            __include: algebra_double_pinyin
+      '')
     ];
   };
+
+  rimeData = pkgs.runCommand "rime-data" { } ''
+    mkdir -p $out/share/rime-data
+    cp -r ${rimeIce}/. $out/share/rime-data/
+    cp -r ${rimeCustomData}/share/rime-data/. $out/share/rime-data/
+  '';
 in
 {
   i18n.inputMethod = {
@@ -30,8 +52,7 @@ in
         fcitx5-gtk
         (fcitx5-rime.override {
           rimeDataPkgs = [
-            rime-data
-            rimeCustomData
+            rimeData
           ];
         })
         fcitx5-mozc

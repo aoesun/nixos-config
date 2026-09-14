@@ -20,6 +20,11 @@
       url = "github:aoesun/dotfiles";
       flake = false;
     };
+
+    rime-ice = {
+      url = "github:iDvel/rime-ice";
+      flake = false;
+    };
   };
 
   outputs =
@@ -27,6 +32,7 @@
       nixpkgs,
       home-manager,
       spicetify-nix,
+      rime-ice,
       ...
     }:
     let
@@ -41,7 +47,10 @@
         hostModule:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs.nixpkgsInput = nixpkgs;
+          specialArgs = {
+            nixpkgsInput = nixpkgs;
+            rimeIce = rime-ice;
+          };
           modules = [
             home-manager.nixosModules.home-manager
             hostModule
