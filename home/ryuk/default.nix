@@ -1,7 +1,8 @@
 { ... }:
 {
   imports = [
-    ./programs/tools.nix
+    ./config/navi.nix
+    ./programs/ssh.nix
     ./programs/zsh.nix
   ];
 
