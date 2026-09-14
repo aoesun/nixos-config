@@ -4,6 +4,7 @@
     ./boot.nix
     ./locale.nix
     ./navi.nix
+    ./neovim
     ./networking.nix
     ./nix.nix
     ./shell.nix
