@@ -11,6 +11,7 @@
 
   home-manager.users.ryuk.imports = [
     ../../home/features/codex.nix
+    ../../home/features/goldendict.nix
   ];
 
   my.programs.opencode.enable = false;
