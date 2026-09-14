@@ -1,9 +1,6 @@
 { config, ... }:
 {
   programs = {
-    git.enable = true;
-    lazygit.enable = true;
-
     ssh = {
       enable = true;
       enableDefaultConfig = false;
@@ -14,11 +11,6 @@
         IdentitiesOnly = true;
         AddKeysToAgent = "yes";
       };
-    };
-
-    navi = {
-      enable = true;
-      enableZshIntegration = true;
     };
   };
 

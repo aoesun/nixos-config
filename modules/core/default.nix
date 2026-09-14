@@ -3,9 +3,10 @@
   imports = [
     ./boot.nix
     ./locale.nix
+    ./navi.nix
     ./networking.nix
     ./nix.nix
-    ./programs.nix
+    ./shell.nix
     ./ssh.nix
     ./tools.nix
     ./users.nix
