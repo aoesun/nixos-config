@@ -37,9 +37,11 @@
         config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "spotify";
       };
 
-      mkSystem = hostModule:
+      mkSystem =
+        hostModule:
         nixpkgs.lib.nixosSystem {
           inherit system;
+          specialArgs.nixpkgsInput = nixpkgs;
           modules = [
             home-manager.nixosModules.home-manager
             hostModule

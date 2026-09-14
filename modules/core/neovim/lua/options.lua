@@ -4,6 +4,7 @@ vim.g.maplocalleader = " "
 local opt = vim.opt
 
 opt.cursorline = true
+opt.exrc = true
 opt.expandtab = true
 opt.hidden = true
 opt.hlsearch = true
