@@ -10,6 +10,7 @@
 
   home.packages = with pkgs; [
     jq
+    just
     tree
     wget
   ];

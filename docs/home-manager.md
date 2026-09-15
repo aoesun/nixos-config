@@ -48,7 +48,7 @@ standalone Home Manager 也不创建系统用户或修改 `/etc/shells`。宿主
 `tools.nix` 直接启用或安装：
 
 - Codex、Fastfetch、Git、LazyGit、tmux；
-- jq、tree、wget；
+- jq、Just、tree、wget；
 - 并导入 Zsh、SSH、Navi、Neovim、Yazi 的实质配置模块。
 
 Yazi 和 Zoxide 的 Zsh 集成由 Home Manager生成。Yazi 的 `y` wrapper 会在退出后将

@@ -22,6 +22,35 @@
 6. 验证功能正常。
 7. 使用 Git 提交并推送。
 
+## Just 命令入口
+
+仓库根目录的 `justfile` 为常用 Nix 操作提供可发现的短命令。`just` 由 Home Manager
+的 tools profile 安装；在仓库根目录或任意子目录运行以下命令可查看完整列表：
+
+```bash
+just
+```
+
+当前 recipe 与底层命令的对应关系：
+
+| Recipe | 用途 |
+| --- | --- |
+| `just check` | 求值并检查全部 flake 输出 |
+| `just build` | 构建当前 NixOS 系统，不激活 |
+| `just home` | 构建完整的 `ryuk` Home Manager profile |
+| `just home ryuk-tools` | 构建无 GUI 的 Home Manager profile |
+| `just diff` | 构建系统并与当前运行系统比较闭包 |
+| `just test` | 临时激活，不修改启动默认代际 |
+| `just switch` | 激活并设置为启动默认代际 |
+| `just update` | 更新所有 flake inputs |
+| `just update-input home-manager` | 只更新指定 input |
+| `just history` | 查看系统代际历史 |
+| `just spotify` | 构建自定义 Spotify 软件包 |
+
+这些 recipe 保留了 `test`、`switch`、`update` 等 Nix 原有术语，执行时也会显示底层
+命令。涉及系统激活的 recipe 仍会正常请求 sudo 密码。仓库没有提供一键垃圾回收或
+删除代际的 recipe；清理继续使用系统已有的定时策略，避免误删回滚点。
+
 ## 检查配置
 
 在仓库目录执行：

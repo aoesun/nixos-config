@@ -97,6 +97,24 @@ packages.x86_64-linux.spotify-spiced
 
 ## 检查与部署
 
+仓库使用 `just` 为常用操作提供简短入口。查看所有 recipe：
+
+```bash
+just
+```
+
+常用流程可以简写为：
+
+```bash
+just check
+just build
+just diff
+just test
+just switch
+```
+
+`just` 只封装下方列出的 Nix 命令，不改变其行为；需要参数或排错时仍可直接运行原命令。
+
 快速检查语法、模块和输出求值：
 
 ```bash
