@@ -59,7 +59,7 @@ flake.nix
 
 - NetworkManager、OpenSSH 和 systemd-boot
 - 普通用户 `ryuk` 和 Zsh
-- 每周清理超过 14 天且不可达的 Nix Store 路径
+- 每周清理超过 7 天的旧世代及不可达 Nix Store 路径
 
 NixOS 桌面 profile 包括：
 
@@ -111,6 +111,8 @@ just build
 just diff
 just test
 just switch
+just clean
+just clean-all
 ```
 
 `just` 只封装下方列出的 Nix 命令，不改变其行为；需要参数或排错时仍可直接运行原命令。

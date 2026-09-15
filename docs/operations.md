@@ -45,11 +45,15 @@ just
 | `just update` | 更新所有 flake inputs |
 | `just update-input home-manager` | 只更新指定 input |
 | `just history` | 查看系统代际历史 |
+| `just clean` | 删除超过 7 天的旧世代并回收不可达 Store 路径 |
+| `just clean-all` | 删除所有非当前世代并回收不可达 Store 路径 |
 | `just spotify` | 构建自定义 Spotify 软件包 |
 
 这些 recipe 保留了 `test`、`switch`、`update` 等 Nix 原有术语，执行时也会显示底层
-命令。涉及系统激活的 recipe 仍会正常请求 sudo 密码。仓库没有提供一键垃圾回收或
-删除代际的 recipe；清理继续使用系统已有的定时策略，避免误删回滚点。
+命令。涉及系统激活和清理系统世代的 recipe 仍会正常请求 sudo 密码。`clean` 使用
+与定时垃圾回收相同的 7 天期限：先清理当前用户 profile，再清理 NixOS system
+profile，最后只回收不再被任何 GC root 引用的 Store 路径。`clean-all` 执行相同步骤，
+但删除所有非当前世代，会失去回滚到它们的能力。
 
 ## 检查配置
 
@@ -106,7 +110,7 @@ nix flake update
 sudo nixos-rebuild switch --rollback
 ```
 
-也可以重启，在 systemd-boot 菜单中选择近期旧代际。启动菜单最多保留 5 项，并且系统每周清理超过 14 天的不可达旧路径，因此 Git 历史仍是长期追踪配置变化的主要依据。
+也可以重启，在 systemd-boot 菜单中选择近期旧代际。启动菜单最多保留 5 项，并且系统每周清理超过 7 天的旧世代和不可达路径，因此 Git 历史仍是长期追踪配置变化的主要依据。
 
 ## Git 与 LazyGit
 

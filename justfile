@@ -40,6 +40,18 @@ update-input input:
 history:
     nix profile history --profile /nix/var/nix/profiles/system
 
+# Delete user and system generations older than seven days, then collect the store.
+clean:
+    nix profile wipe-history --older-than 7d
+    sudo nix profile wipe-history --profile /nix/var/nix/profiles/system --older-than 7d
+    nix store gc
+
+# Delete every non-current user and system generation, then collect the store.
+clean-all:
+    nix profile wipe-history
+    sudo nix profile wipe-history --profile /nix/var/nix/profiles/system
+    nix store gc
+
 # Build the custom Spotify package.
 spotify:
     nix build .#spotify-spiced -o result-spotify

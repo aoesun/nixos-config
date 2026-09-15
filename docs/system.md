@@ -41,10 +41,10 @@ systemd-boot 或 GRUB。当前主机在常规 `nixos-rebuild switch` 后仍可�
 系统每周自动运行 Nix 垃圾回收，并使用：
 
 ```text
---delete-older-than 14d
+--delete-older-than 7d
 ```
 
-它会删除超过 14 天且已不可达的 Nix Store 路径和旧代际。仍被当前系统、用户环境或其他 GC Root 引用的路径不会删除。该策略与 Git 提交历史无关，不会清理仓库中的 commit。
+它会删除超过 7 天的旧代际，并清理因此变得不可达的 Nix Store 路径。仍被当前系统、用户环境或其他 GC Root 引用的路径不会删除。该策略与 Git 提交历史无关，不会清理仓库中的 commit。
 
 ## 硬件和存储
 
