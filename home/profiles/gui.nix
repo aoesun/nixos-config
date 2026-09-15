@@ -2,6 +2,7 @@
 {
   imports = [
     ../programs/chromium.nix
+    ../programs/rime.nix
   ];
 
   home.packages = with pkgs; [

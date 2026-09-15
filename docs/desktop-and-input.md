@@ -63,14 +63,19 @@ Manager 的 Store 内文件或 `mkOutOfStoreSymlink`。辞书本体通常体积�
 
 组内默认输入法为 Rime。
 
-## Rime 数据组合
+## Rime 数据与用户配置
 
-配置通过 `pkgs.symlinkJoin` 创建 `rime-custom-data`，将两个自定义 YAML 补丁作为数据包交给 `fcitx5-rime`：
+NixOS 将锁定版本的 `rime-ice` 安装为 Rime 的共享基础数据。四个用户补丁保存在
+`~/dotfiles/rime`，Home Manager 将它们逐个链接到
+`~/.local/share/fcitx5/rime/`：
 
 - `default.custom.yaml`
 - `double_pinyin.custom.yaml`
+- `melt_eng.custom.yaml`
+- `radical_pinyin.custom.yaml`
 
-该自定义包与 nixpkgs 的 `rime-data` 一起组成 Rime 数据来源，避免直接在用户目录中长期维护配置副本。
+只链接静态配置文件，不链接整个 Rime 用户目录。`build/`、`sync/`、`*.userdb/`、
+`installation.yaml` 和 `user.yaml` 是 Rime 需要写入的运行时状态，不进入 Git。
 
 ## 自然码双拼行为
 
@@ -84,10 +89,10 @@ double_pinyin
 
 ### 默认简体中文
 
-`double_pinyin` 的第 3 个开关是 `simplification`。配置将其 reset 值设为 `1`，对应简体状态：
+`double_pinyin` 的第 3 个开关是 `simplification`。配置将其 reset 值设为 `0`：
 
 ```text
-switches/@2/reset = 1
+switches/@2/reset = 0
 ```
 
 Rime 默认按键绑定中的 `Ctrl+Shift+4` 仍可切换简体与繁体。
@@ -112,10 +117,13 @@ Rime 默认按键绑定中的 `Ctrl+Shift+4` 仍可切换简体与繁体。
 
 ## Rime 配置生效
 
-修改 Rime 数据后，先重建 NixOS：
+修改 `~/dotfiles/rime/*.custom.yaml` 后不需要重建 NixOS，但需要在 Fcitx5 菜单执行
+“重新部署”，让 librime 重新合并并编译配置。也可以重启 Fcitx5 后再执行部署。
 
-```bash
-sudo nixos-rebuild switch --flake ~/nixos-config
-```
+如果编译缓存没有更新，可先备份用户目录中的 Rime `build` 缓存，再重新部署；不要
+删除词库数据库和同步目录。更新 `rime-ice` 的锁定版本或输入法软件本身时，才需要
+重建 NixOS。
 
-通常重新登录桌面或在 Fcitx5 菜单执行“重新部署”即可加载新配置。如果编译缓存没有更新，可先备份用户目录中的 Rime `build` 缓存，再重新启动 Fcitx5；不要删除词库数据库和同步目录。
+在其他发行版复用这些补丁时，宿主仍需安装并启用 Rime 前端（例如 `fcitx5-rime`），
+同时提供兼容的 `rime-ice` 基础数据。Home Manager 的 GUI profile 只部署用户补丁，
+不负责完成发行版的输入法框架和桌面会话集成。

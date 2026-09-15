@@ -62,10 +62,15 @@ Shell 切换到最终目录。Wayland 剪贴板只由 GUI profile 加入，因�
 - Chromium，以及 Vimium 和 uBlock Origin Lite；
 - Bitwarden Desktop；
 - GoldenDict-ng；
-- Yazi 的 `wl-clipboard` 支持。
+- Yazi 的 `wl-clipboard` 支持；
+- 从 `~/dotfiles/rime` 链接到 Fcitx5 Rime 用户目录的静态补丁。
 
 这些应用不要求特定桌面实现，但运行时需要宿主已有图形会话。浏览器资料、Cookie、
 Bitwarden 登录状态和其他运行数据不进入 Git。
+
+Rime 前端、rime-ice 基础数据、桌面会话集成和重新部署由宿主负责，因此这部分链接
+只有在宿主已经配置好 Rime 时才会生效。Rime 的 `build/`、用户词库和同步状态不由
+Home Manager 管理。
 
 ## Neovim 与 dotfiles
 

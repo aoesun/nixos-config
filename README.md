@@ -77,6 +77,7 @@ Home Manager 管理：
 - Navi 个人 cheats 的本地符号链接
 - Codex
 - Chromium、Vimium、uBlock Origin Lite、Bitwarden 和 GoldenDict（仅完整 profile）
+- 来自 `~/dotfiles/rime` 的 Rime 用户补丁（仅完整 profile；输入法框架仍由宿主管理）
 
 ## Flake 输出
 
@@ -200,5 +201,6 @@ nix run home-manager/release-26.05 -- switch --flake .#ryuk-tools
 - Marketplace 手动安装的扩展
 - Navi cheats 的实际内容
 - Neovim Lua 配置
+- Rime 静态用户补丁
 
 不要提交明文密码、Token、Cookie、私钥或应用认证文件。如需声明式管理密钥，应使用 `sops-nix` 或 `agenix` 等加密方案。

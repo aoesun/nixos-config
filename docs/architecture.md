@@ -11,7 +11,7 @@
 
 精确修订记录在 `flake.lock` 中，因此日常重建具有可重复性。只有执行 `nix flake update` 或显式更新某个输入时，锁定版本才会变化。
 
-频繁编辑的 Neovim Lua 和 Navi cheats 位于独立的 `~/dotfiles` Git 仓库，并通过
+频繁编辑的 Neovim Lua、Navi cheats 和 Rime 用户补丁位于独立的 `~/dotfiles` Git 仓库，并通过
 Store 外符号链接部署。Nix 管理程序及依赖，dotfiles 的 Git 历史管理原生配置内容。
 
 ## 系统输出
