@@ -2,7 +2,7 @@
 
 ## 基础系统
 
-`modules/nixos/base.nix` 定义可被多台机器复用的基础行为：
+`modules/core/default.nix` 汇总可被多台机器复用的基础系统模块：
 
 - 使用 NetworkManager 管理网络连接。
 - 时区为 `Asia/Tokyo`。
@@ -23,16 +23,18 @@
 - 属于 `networkmanager` 组，可以管理网络。
 - 属于 `wheel` 组，可以通过 sudo 执行管理员操作。
 
-系统同时启用 Zsh 和 tmux。Zsh 的具体交互配置由 Home Manager 管理，参见 [Home Manager 用户环境](home-manager.md)。
+系统启用 Zsh 作为登录 Shell。tmux 与 Zsh 的具体交互配置由 Home Manager 管理，参见 [Home Manager 用户环境](home-manager.md)。
 
 ## 启动与回滚
 
-系统使用 systemd-boot：
+当前 `nixos` 主机在自己的入口中使用 systemd-boot：
 
 - 允许修改 EFI 启动变量。
 - 最多保留 5 个启动菜单配置项。
 
-这意味着常规 `nixos-rebuild switch` 后仍可从启动菜单选择近期系统代际进行回滚，但更早的启动条目会被移出菜单。
+启动器属于主机及其固件的选择，不在公共 `core` 中。未来主机可以按实际硬件选择
+systemd-boot 或 GRUB。当前主机在常规 `nixos-rebuild switch` 后仍可从启动菜单选择
+近期系统代际进行回滚，但更早的启动条目会被移出菜单。
 
 ## Nix Store 清理
 
@@ -90,7 +92,7 @@ OpenSSH 服务已启用，策略如下：
 
 ## VMware 客户机
 
-`modules/nixos/optional/vmware-guest.nix` 当前仅由
+`modules/virtualization/vmware-guest.nix` 当前仅由
 `hosts/nixos/default.nix` 显式加载：
 
 - 启用 VMware Guest 支持。

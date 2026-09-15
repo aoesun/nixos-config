@@ -4,8 +4,6 @@
     enable = true;
     enableCompletion = true;
     autocd = true;
-
-    # Use conventional shell line editing; this does not require Emacs.
     defaultKeymap = "emacs";
 
     autosuggestion = {
@@ -41,7 +39,6 @@
     };
 
     localVariables = {
-      # Keep Spaceship's upstream layout while using a compact two-line prompt.
       SPACESHIP_PROMPT_ADD_NEWLINE = false;
       SPACESHIP_PROMPT_SEPARATE_LINE = true;
       SPACESHIP_DIR_COLOR = "blue";
@@ -65,15 +62,12 @@
       l = "ls -CF --color=auto";
       la = "ls -A --color=auto";
       ll = "ls -lah --color=auto";
-      lg = "lazygit";
       tree = "tree -a -C";
     };
 
     initContent = ''
-      # Load the packaged prompt directly without adding a shell framework.
       source ${pkgs.spaceship-prompt}/share/zsh/themes/spaceship.zsh-theme
 
-      # Move by whole words with the right arrow in common terminal modes.
       bindkey '^[[C' forward-word
       bindkey '^[OC' forward-word
     '';

@@ -65,7 +65,6 @@ nix flake update
 
 - `nixpkgs`：NixOS、内核及大多数软件包。
 - `home-manager`：用户环境管理模块。
-- `dotfiles`：预留的原生配置文件来源；当前 Navi 实时链接不依赖其锁定版本。
 
 Home Manager 的 nixpkgs 输入跟随系统 nixpkgs，确保系统与用户配置使用同一套
 软件包集合。

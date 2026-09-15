@@ -106,7 +106,7 @@ LazyGit 常用键：
 - SSH、age、PGP 等私钥。
 - `.env` 和应用登录状态。
 - Bitwarden 数据目录。
-- Codex、OpenCode 或 GitHub 的认证文件。
+- Codex 或 GitHub 的认证文件。
 
 `.gitignore` 只能防止常见误提交，不能替代提交前审阅。如果未来需要声明式密钥管理，可引入 `sops-nix` 或 `agenix`，只提交加密后的密文和允许公开的公钥。
 

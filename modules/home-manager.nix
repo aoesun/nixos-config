@@ -4,6 +4,9 @@
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "hm-backup";
-    users.ryuk = import ../../home/ryuk;
+    users.ryuk.imports = [
+      ../home/users/ryuk.nix
+      ../home/profiles/default.nix
+    ];
   };
 }

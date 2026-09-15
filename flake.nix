@@ -1,5 +1,5 @@
 {
-  description = "Declarative NixOS configuration for the nixos host";
+  description = "Declarative NixOS hosts and a portable Home Manager environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -12,13 +12,6 @@
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # Reserved as a reproducible source for configurations that should live in
-    # the Nix Store. Frequently edited Navi cheats use the local checkout.
-    dotfiles = {
-      url = "github:aoesun/dotfiles";
-      flake = false;
     };
 
     rime-ice = {
@@ -56,10 +49,34 @@
             hostModule
           ];
         };
+
+      mkHome =
+        profile:
+        home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [
+            ./home/users/ryuk.nix
+            profile
+          ];
+        };
     in
     {
       # The output name matches the current hostname, so `--flake .` selects it.
       nixosConfigurations.nixos = mkSystem ./hosts/nixos;
+
+      # This uses the same module as the NixOS integration and can be activated
+      # on any x86_64 Linux distribution with Home Manager installed.
+      homeConfigurations = {
+        ryuk = mkHome ./home/profiles/default.nix;
+        "ryuk-tools" = mkHome ./home/profiles/tools.nix;
+      };
+
+      # Reusable profiles for consumers that provide their own user identity.
+      homeModules = {
+        default = import ./home/profiles/default.nix;
+        gui = import ./home/profiles/gui.nix;
+        tools = import ./home/profiles/tools.nix;
+      };
 
       # Custom packages are exported for explicit installation with `nix profile`.
       packages.${system} = import ./packages {

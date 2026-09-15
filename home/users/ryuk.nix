@@ -1,12 +1,5 @@
 { ... }:
 {
-  imports = [
-    ./config/navi.nix
-    ./programs/fastfetch.nix
-    ./programs/ssh.nix
-    ./programs/zsh.nix
-  ];
-
   home = {
     username = "ryuk";
     homeDirectory = "/home/ryuk";

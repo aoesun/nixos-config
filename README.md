@@ -2,7 +2,7 @@
 
 用于构建 `nixos` 主机及 `ryuk` 用户环境的声明式配置。
 
-当前以 NixOS 为主要目标，并通过作为 NixOS 模块集成的 Home Manager 管理用户配置。
+同时提供 NixOS 主机配置与可在其他 Linux 发行版独立激活的 Home Manager 用户环境。
 
 ## 配置结构
 
@@ -12,13 +12,14 @@
 ├── hosts/
 │   └── nixos/                        # 当前主机入口与硬件配置
 ├── modules/
-│   ├── core/                         # 每台主机都应具备的基础系统
-│   ├── features/                     # 可选的单项系统功能
-│   ├── profiles/                     # 多项 feature 的组合
-│   └── integrations/                 # Home Manager 等外部模块集成
+│   ├── core/                         # 可跨主机复用的基础系统
+│   ├── desktop/                      # Plasma、输入法和字体
+│   ├── virtualization/               # 虚拟化平台专用能力
+│   └── home-manager.nix              # Home Manager 的 NixOS 接入层
 ├── home/
-│   ├── ryuk/                         # ryuk 的默认 Home Manager 配置
-│   └── features/                     # 可按主机选择的用户功能
+│   ├── users/                        # 用户身份与兼容版本
+│   ├── programs/                     # 具有实质配置的单项程序
+│   └── profiles/                     # tools、gui 与完整组合
 └── packages/                         # 独立导出的自定义软件包
 ```
 
@@ -29,23 +30,28 @@ flake.nix
 └── nixosConfigurations.nixos
     └── hosts/nixos
         ├── modules/core
-        ├── modules/profiles/desktop.nix
-        ├── modules/integrations/home-manager.nix
-        │   └── home/ryuk
-        │       └── home/features
-        ├── modules/features/development/opencode.nix
-        └── modules/features/virtualization/vmware-guest.nix
+        ├── modules/desktop
+        ├── modules/home-manager.nix
+        │   ├── home/users/ryuk.nix
+        │   └── home/profiles/default.nix
+        └── modules/virtualization/vmware-guest.nix
+
+flake.nix
+└── homeConfigurations.ryuk
+    ├── home/users/ryuk.nix
+    └── home/profiles/default.nix
 ```
 
 ## 模块边界
 
-- `core` 保存没有桌面环境也应存在的系统能力，例如网络、SSH、用户、Zsh 和基础工具。
-- `features` 保存可由不同主机独立选择的功能，例如浏览器、桌面环境和虚拟化支持。
-- `profiles` 只负责组合 feature；当前 `desktop` profile 组合 Plasma、字体、输入法、浏览器和 GUI 软件。
-- `integrations` 负责把外部模块体系接入 NixOS，不承载具体用户偏好。
-- `home/ryuk` 保存 ryuk 默认需要的用户配置。
-- `home/features` 保存由主机决定是否启用的用户功能，例如 Codex 和 GoldenDict。
-- `hosts` 是最终装配层，只表达一台机器选择了哪些模块以及它自己的硬件和主机属性。
+- `core` 只保存可跨当前和未来主机复用的系统基础，例如网络、SSH 服务、用户和登录 Shell。
+- `desktop` 自身就是桌面组合入口，并将 Plasma、字体和输入法拆成有实质内容的模块。
+- `virtualization` 保存由特定虚拟化平台选择的客户机能力。
+- `home-manager.nix` 只负责把 Home Manager 接入 NixOS，不承载具体用户偏好。
+- `home/programs` 只保存具有实质配置逻辑的个人程序。
+- `home/profiles/tools.nix` 和 `gui.nix` 分别组合无桌面工具与个人 GUI 应用。
+- `home/profiles/default.nix` 组合完整环境；`home/users` 只保存用户身份。
+- `hosts` 是最终装配层，表达模块选择以及启动器、硬件和主机名等机器专属属性。
 
 ## 当前配置
 
@@ -53,34 +59,36 @@ flake.nix
 
 - NetworkManager、OpenSSH 和 systemd-boot
 - 普通用户 `ryuk` 和 Zsh
-- Git、LazyGit、Navi、Neovim、tmux、Yazi、Zoxide
-- jq、tree、wget 和 Wayland 剪贴板工具
 - 每周清理超过 14 天且不可达的 Nix Store 路径
 
-桌面 profile 包括：
+NixOS 桌面 profile 包括：
 
 - KDE Plasma 6（Wayland）
 - Fcitx5、Rime 自然码双拼和 Mozc
 - Fira Code Nerd Font
-- Chromium、Vimium 和 uBlock Origin Lite
-- Bitwarden Desktop
 
 Home Manager 管理：
 
-- ryuk 的 Zsh 交互体验和 Spaceship 提示符
+- Neovim、插件、Nix LSP 与来自 `~/dotfiles/nvim` 的 Lua 配置
+- Git、LazyGit、Navi、tmux、Yazi、Zoxide、jq、tree 和 wget
+- Zsh 交互体验和 Spaceship 提示符
 - GitHub SSH 客户端配置
 - Fastfetch
 - Navi 个人 cheats 的本地符号链接
-- 当前主机选择的 Codex 和 GoldenDict
-
-OpenCode 具有系统级开关，但当前设置为禁用。
+- Codex
+- Chromium、Vimium、uBlock Origin Lite、Bitwarden 和 GoldenDict（仅完整 profile）
 
 ## Flake 输出
 
-当前提供两个主要输出：
+当前提供以下主要输出：
 
 ```text
 nixosConfigurations.nixos
+homeConfigurations.ryuk
+homeConfigurations.ryuk-tools
+homeModules.default
+homeModules.tools
+homeModules.gui
 packages.x86_64-linux.spotify-spiced
 ```
 
@@ -163,9 +171,24 @@ nix flake check --no-build
 
 ## 非 NixOS 复用
 
-`home/` 下的 Home Manager 模块可以作为未来跨发行版复用的基础，但当前 flake 尚未提供独立的 `homeConfigurations` 输出。其他发行版暂时不能直接通过本仓库执行 `home-manager switch --flake`。
+在任意 x86_64 Linux 发行版安装 Nix、启用 flakes，并将 dotfiles 克隆到固定位置：
 
-真正需要在非 NixOS 系统部署时，可以增加独立 Home Manager 输出，并补充由 NixOS `core` 当前提供的用户工具。Den 等组织框架不会改变 NixOS 模块与 Home Manager 模块的作用域边界。
+```bash
+git clone https://github.com/aoesun/dotfiles ~/dotfiles
+git clone https://github.com/aoesun/nixos-config ~/nixos-config
+cd ~/nixos-config
+nix run home-manager/release-26.05 -- switch --flake .#ryuk
+```
+
+无桌面环境使用只包含命令行工具的输出：
+
+```bash
+nix run home-manager/release-26.05 -- switch --flake .#ryuk-tools
+```
+
+该输出不会管理系统用户、登录 Shell、SSH 服务或桌面环境。宿主发行版仍需确保用户
+`ryuk` 的 home 为 `/home/ryuk`，并将 Zsh 设置为登录 Shell。详细说明见
+[Home Manager 用户环境](docs/home-manager.md)。
 
 ## 状态与敏感数据
 
@@ -176,5 +199,6 @@ nix flake check --no-build
 - 浏览器个人资料
 - Marketplace 手动安装的扩展
 - Navi cheats 的实际内容
+- Neovim Lua 配置
 
 不要提交明文密码、Token、Cookie、私钥或应用认证文件。如需声明式管理密钥，应使用 `sops-nix` 或 `agenix` 等加密方案。

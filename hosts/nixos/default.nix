@@ -3,18 +3,19 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/core
-    ../../modules/profiles/desktop.nix
-    ../../modules/integrations/home-manager.nix
-    ../../modules/features/development/opencode.nix
-    ../../modules/features/virtualization/vmware-guest.nix
+    ../../modules/desktop
+    ../../modules/home-manager.nix
+    ../../modules/virtualization/vmware-guest.nix
   ];
 
-  home-manager.users.ryuk.imports = [
-    ../../home/features/codex.nix
-    ../../home/features/goldendict.nix
-  ];
-
-  my.programs.opencode.enable = false;
+  boot.loader = {
+    systemd-boot = {
+      enable = true;
+      # Limit boot entries while keeping enough rollback points.
+      configurationLimit = 5;
+    };
+    efi.canTouchEfiVariables = true;
+  };
 
   networking.hostName = "nixos";
 

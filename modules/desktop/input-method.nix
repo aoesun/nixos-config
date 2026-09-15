@@ -51,9 +51,7 @@ in
       addons = with pkgs; [
         fcitx5-gtk
         (fcitx5-rime.override {
-          rimeDataPkgs = [
-            rimeData
-          ];
+          rimeDataPkgs = [ rimeData ];
         })
         fcitx5-mozc
       ];

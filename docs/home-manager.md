@@ -1,137 +1,96 @@
 # Home Manager 用户环境
 
-## 集成方式
+## 结构
 
-Home Manager 作为 NixOS 模块加载，而不是独立执行：
+Home Manager 配置分成三层：
 
-- 使用系统的全局 nixpkgs：`useGlobalPkgs = true`。
-- 用户软件通过系统构建安装：`useUserPackages = true`。
-- 若激活时遇到同名旧文件，备份扩展名为 `.hm-backup`。
-- 用户 `ryuk` 的入口是 `home/ryuk/default.nix`。
+```text
+home/
+├── users/ryuk.nix          # 用户名、home 路径、stateVersion
+├── programs/               # 具有实质配置逻辑的单项程序
+└── profiles/
+    ├── tools.nix           # 无桌面环境也适用
+    ├── gui.nix             # 与 KDE、GNOME、Niri 无关的 GUI 应用
+    └── default.nix         # tools + gui
+```
 
-用户信息：
+只有一行启用配置的软件直接写在 profile 中，不为“可选性”创建空壳模块。需要停用时，
+从 profile 的程序或软件包列表中移除即可。程序出现独立配置、资源文件或复杂依赖后，
+再提取到 `home/programs/`。
 
-- 用户名：`ryuk`
-- 家目录：`/home/ryuk`
-- Home Manager 状态版本：`26.05`
-- 启用 XDG 基础目录支持。
-- 启用 `home-manager` 命令本身。
+## 输出与激活
 
-## 通用工具
+完整桌面用户环境：
 
-`home/ryuk/programs/tools.nix` 安装或启用：
+```bash
+nix run home-manager/release-26.05 -- switch --flake .#ryuk
+```
 
-| 工具 | 用途 |
-| --- | --- |
-| `tree` | 树形查看目录 |
-| `wget` | 下载文件 |
-| Codex | AI 编程 CLI |
-| Git | 版本控制 |
-| LazyGit | Git 终端界面 |
-| OpenCode | AI 编程工具 |
-| Navi | 交互式命令速查，并集成 Zsh |
-| Zoxide | 基于使用频率的目录跳转，并集成 Zsh |
+无 GUI 的服务器、容器或发行版环境：
 
-认证状态和服务商凭据明确保存在仓库外，不能加入 Nix 文件或 Git 提交。
+```bash
+nix run home-manager/release-26.05 -- switch --flake .#ryuk-tools
+```
 
-## SSH 客户端与 GitHub
+当前 NixOS 主机通过 `modules/home-manager.nix` 组合
+`home/users/ryuk.nix` 与 `home/profiles/default.nix`。两个 standalone 输出复用相同
+模块，不维护第二套用户偏好。
 
-Home Manager 生成 `~/.ssh/config` 中的 `github.com` 主机块：
+Home Manager 不负责在其他发行版安装完整桌面环境。宿主应先提供 KDE、GNOME、
+Niri 或其他可用图形会话；GUI profile 只安装 Chromium、Bitwarden、GoldenDict 等
+桌面无关的个人应用。
 
-- 不生成 Home Manager 的旧式隐式默认主机块，未声明项使用 OpenSSH 默认值。
-- 连接用户固定为 `git`。
-- 身份文件为 `~/.ssh/id_ed25519`。
-- `IdentitiesOnly` 避免尝试无关密钥。
-- `AddKeysToAgent = "yes"` 使首次成功使用的密钥自动加入正在运行的
-  `ssh-agent`。
+standalone Home Manager 也不创建系统用户或修改 `/etc/shells`。宿主应已有 `ryuk`
+用户和 `/home/ryuk`，并自行将 Zsh 注册为登录 Shell。
 
-每次重新登录后，首次访问 GitHub 时仍需输入一次私钥 passphrase；之后 LazyGit
-和 Git 可复用 agent 缓存。私钥及 passphrase 不由 Home Manager 管理，也绝不能
-提交到仓库。
+## Tools profile
 
-## Navi cheats
+`tools.nix` 直接启用或安装：
 
-个人 Navi cheats 使用软件原生的 `.cheat` 格式，保存在独立的公开仓库
-`aoesun/dotfiles` 的 `navi/` 目录中。本机仓库固定克隆到 `~/dotfiles`；Home
-Manager 使用 `mkOutOfStoreSymlink` 将 `~/dotfiles/navi` 实时链接为
-`~/.local/share/navi/cheats/personal/`。修改、新增或删除 cheat 后 Navi 可以立即
-读取，不需要推送远端或重建系统；内容稳定后再由 Git 提交并推送。
+- Codex、Fastfetch、Git、LazyGit、tmux；
+- jq、tree、wget；
+- 并导入 Zsh、SSH、Navi、Neovim、Yazi 的实质配置模块。
 
-这种 Store 外链接由 Home Manager 管理部署关系，但文件内容不进入 Nix Store，
-因此系统 generation 不负责回滚 cheat，内容版本应通过 dotfiles 仓库的 Git 历史
-恢复。新机器应用 NixOS 配置前，应先将公开仓库克隆到 `~/dotfiles`。旧的
-`~/.local/share/navi/cheats/ryuk__cheats/` 不由 Home Manager 管理；确认新目录
-生效后应避免继续同时维护两份，以免 Navi 显示重复命令。
+Yazi 和 Zoxide 的 Zsh 集成由 Home Manager生成。Yazi 的 `y` wrapper 会在退出后将
+Shell 切换到最终目录。Wayland 剪贴板只由 GUI profile 加入，因此 `ryuk-tools`
+不会携带图形环境依赖。
 
-## Vim
+## GUI profile
 
-Vim 被设为默认编辑器，主要行为为：
+`gui.nix` 提供：
 
-- 显式使用无图形界面的 `pkgs.vim`，不安装 GVim。
-- 使用空格代替 Tab。
-- Tab 宽度和缩进宽度均为 2。
-- 显示行号与当前行。
-- 允许隐藏未保存缓冲区。
-- 搜索默认忽略大小写；查询中包含大写字母时自动区分大小写。
-- 启用语法、文件类型插件和自动缩进。
-- 启用增量搜索与搜索高亮。
-- 启用命令行补全菜单。
-- 光标上下保留 4 行上下文。
-- 始终显示 sign column，避免诊断标记出现时文本左右跳动。
+- Chromium，以及 Vimium 和 uBlock Origin Lite；
+- Bitwarden Desktop；
+- GoldenDict-ng；
+- Yazi 的 `wl-clipboard` 支持。
 
-## Yazi
+这些应用不要求特定桌面实现，但运行时需要宿主已有图形会话。浏览器资料、Cookie、
+Bitwarden 登录状态和其他运行数据不进入 Git。
 
-Yazi 是终端文件管理器，并集成 Zsh。shell wrapper 名称为 `y`，可在退出 Yazi 后将 shell 切换到最后所在目录。
+## Neovim 与 dotfiles
 
-当前 nixpkgs 的 Yazi 包已在自身包装器中提供 `file`、`jq`、
-`poppler-utils`、`7zz`、`ffmpeg-headless`、`fd`、`ripgrep`、`fzf`、
-`zoxide`、ImageMagick、`chafa` 和 `resvg`，用于文件识别、预览、搜索、
-筛选、归档处理及目录跳转，不需要在 Home Manager 中重复声明。
+职责按内容类型拆分：
 
-配置仅通过 `extraPackages` 额外加入 `wl-clipboard`，提供 Wayland 会话所需的
-`wl-copy` 和 `wl-paste` 剪贴板命令。桌面模块安装的 Fira Code Nerd Font 则为
-Yazi 界面提供图标字形。
+- `home/programs/neovim.nix` 管理 Neovim、插件、Treesitter grammars、`nixd` 和 `nixfmt`；
+- `~/dotfiles/nvim` 管理原生 Lua 配置；
+- 仓库根目录 `.nvim.lua` 只补充本仓库特有的 nixd flake option 表达式。
 
-界面设置：显示隐藏文件、自然排序、目录优先，并以文件大小作为列表行信息。
+Home Manager 生成最小 `init.lua` 来调用 `~/dotfiles/nvim/init.lua`，并实时链接其
+`lua/` 子目录。Lua 保存后无需重建；版本控制和回滚由 dotfiles 仓库负责。新机器
+激活前必须先克隆：
 
-## Zsh
+```bash
+git clone https://github.com/aoesun/dotfiles ~/dotfiles
+```
 
-### 基础交互
+## 状态和密钥
 
-- 启用补全。
-- 输入目录名可直接切换目录（`autocd`）。
-- 使用 Emacs 风格的常规行编辑键位；这不依赖 Emacs 编辑器。
-- 常见终端模式下，右方向键按单词向前移动。
+以下内容不进入配置仓库：
 
-### 自动建议和高亮
+- SSH 私钥与 passphrase；
+- Codex、GitHub 等认证信息；
+- 浏览器和桌面应用资料；
+- `~/dotfiles` 的未提交状态。
 
-自动建议只从历史记录生成，建议文字使用灰色。语法高亮启用 `main` 和 `brackets` 两类 highlighter，并为命令、路径、选项、字符串、注释、错误和不同层级括号设置颜色。
-
-### Spaceship 提示符
-
-直接加载 nixpkgs 提供的 Spaceship 主题，不使用额外 shell 框架。提示符使用紧凑的两行布局：
-
-- 不在提示符前额外插入空行。
-- 输入字符独占下一行。
-- 目录为蓝色。
-- Git 分支为黄色。
-- Git 状态和失败提示为红色。
-- 成功提示为绿色。
-
-### 历史记录
-
-- 内存和磁盘各保留 1000 条。
-- 以空格开头的命令不保存。
-- 多个 Zsh 会话共享历史。
-- 保存时去除重复项。
-- 启用历史子串搜索。
-
-### 别名
-
-| 别名 | 实际命令 | 用途 |
-| --- | --- | --- |
-| `l` | `ls -CF --color=auto` | 简洁彩色列表 |
-| `la` | `ls -A --color=auto` | 包括隐藏文件 |
-| `ll` | `ls -lah --color=auto` | 详细、人类可读列表 |
-| `lg` | `lazygit` | 启动 LazyGit |
-| `tree` | `tree -a -C` | 彩色显示包括隐藏文件的目录树 |
+NixOS 集成设置 `backupFileExtension = "hm-backup"`。standalone 首次激活时若目标
+路径已有普通文件，应先检查并迁移，以免与 Home Manager 管理的链接冲突。

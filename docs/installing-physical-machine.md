@@ -6,7 +6,7 @@
 ## 设计原则
 
 - 所有主机使用同一个 Git `main` 分支，不为每台机器维护长期分支。
-- 公共功能继续放在 `modules/nixos/`。
+- 公共基础放在 `modules/core/`，桌面组合放在 `modules/desktop/`，平台专用能力放在对应目录。
 - 每台机器在 `hosts/<主机名>/` 中保存入口和硬件配置。
 - 每台机器在 `flake.nix` 中有独立的 `nixosConfigurations` 输出。
 - VMware 模块只由虚拟机入口导入。
@@ -75,12 +75,16 @@ cp /mnt/etc/nixos/hardware-configuration.nix \
 {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/nixos/base.nix
-    ../../modules/nixos/boot.nix
-    ../../modules/nixos/desktop.nix
-    ../../modules/nixos/ssh.nix
-    ../../modules/nixos/home-manager.nix
+    ../../modules/core
+    ../../modules/desktop
+    ../../modules/home-manager.nix
   ];
+
+  # Choose a boot loader appropriate for this physical machine.
+  boot.loader = {
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
+  };
 
   networking.hostName = "workstation";
 
@@ -89,7 +93,7 @@ cp /mnt/etc/nixos/hardware-configuration.nix \
 }
 ```
 
-不要导入 `optional/vmware-guest.nix`。如果实体机需要专用显卡、蓝牙、电源管理、
+不要导入 `modules/virtualization/vmware-guest.nix`。如果实体机需要专用显卡、蓝牙、电源管理、
 固件或 CPU 微码设置，可以新增实体机专用模块，或直接在这个入口中声明后再逐步
 拆分。
 

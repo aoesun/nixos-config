@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 {
   programs.chromium = {
     enable = true;
@@ -7,8 +7,4 @@
       "ddkjiahejlhfcafbddmgiahcphecmpfh" # uBlock Origin Lite
     ];
   };
-
-  environment.systemPackages = [
-    pkgs.chromium
-  ];
 }
