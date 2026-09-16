@@ -18,6 +18,10 @@
   programs = {
     codex.enable = true;
     fastfetch.enable = true;
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+    };
     git.enable = true;
     lazygit.enable = true;
     tmux.enable = true;
