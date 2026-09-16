@@ -23,6 +23,8 @@ in
         fcitx5-mozc
       ];
 
+      settings.globalOptions.Behavior.showInputMethodInformationWhenFocusIn = "True";
+
       settings.inputMethod = {
         "Groups/0" = {
           Name = "Default";
