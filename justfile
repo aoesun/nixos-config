@@ -24,6 +24,10 @@ diff: build
 test:
     sudo nixos-rebuild test --flake .
 
+# Make the local host configuration the next boot target without activating it now.
+boot:
+    sudo nixos-rebuild boot --flake .
+
 # Activate the local host configuration and make it the boot default.
 switch:
     sudo nixos-rebuild switch --flake .
