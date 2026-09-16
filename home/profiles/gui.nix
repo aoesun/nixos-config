@@ -10,4 +10,6 @@
     goldendict-ng
     wl-clipboard
   ];
+
+  programs.ghostty.enable = true;
 }

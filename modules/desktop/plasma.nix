@@ -1,17 +1,21 @@
-{ pkgs, ... }:
 {
-  services = {
-    desktopManager.plasma6.enable = true;
-    displayManager.plasma-login-manager.enable = true;
-  };
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
+  config = lib.mkIf (builtins.elem config.desktop.session [ "plasma" "both" ]) {
+    services.desktopManager.plasma6.enable = true;
 
-  environment.plasma6.excludePackages = with pkgs.kdePackages; [
-    ark
-    discover
-    elisa
-    khelpcenter
-    kwin-x11
-    okular
-    qrca
-  ];
+    environment.plasma6.excludePackages = with pkgs.kdePackages; [
+      ark
+      discover
+      elisa
+      khelpcenter
+      kwin-x11
+      okular
+      qrca
+    ];
+  };
 }

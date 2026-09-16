@@ -1,6 +1,13 @@
 {
   description = "Declarative NixOS hosts and a portable Home Manager environment";
 
+  nixConfig = {
+    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-trusted-public-keys = [
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
@@ -8,6 +15,10 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Follow Noctalia's cache branch so the desktop shell does not need to be
+    # compiled locally on this VM.
+    noctalia.url = "github:noctalia-dev/noctalia/cachix";
 
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
@@ -24,6 +35,7 @@
     {
       nixpkgs,
       home-manager,
+      noctalia,
       spicetify-nix,
       rime-ice,
       ...
@@ -42,6 +54,7 @@
           inherit system;
           specialArgs = {
             nixpkgsInput = nixpkgs;
+            inherit noctalia;
             rimeIce = rime-ice;
           };
           modules = [
@@ -75,6 +88,7 @@
       homeModules = {
         default = import ./home/profiles/default.nix;
         gui = import ./home/profiles/gui.nix;
+        niri = import ./home/profiles/niri.nix;
         tools = import ./home/profiles/tools.nix;
       };
 
