@@ -55,6 +55,10 @@ Yazi 和 Zoxide 的 Zsh 集成由 Home Manager生成。Yazi 的 `y` wrapper 会�
 Shell 切换到最终目录。Wayland 剪贴板只由 GUI profile 加入，因此 `ryuk-tools`
 不会携带图形环境依赖。
 
+Yazi 中按 `!` 会在当前目录打开完整的交互式 Shell，可使用 Zsh 补全、历史和建议；
+执行 `exit` 后返回 Yazi。按 `g`、`l` 会在当前目录打开 LazyGit，退出后同样返回
+Yazi。两者均使用阻塞模式，外部程序运行期间 Yazi 不会继续接收按键。
+
 ## GUI profile
 
 `gui.nix` 提供：
