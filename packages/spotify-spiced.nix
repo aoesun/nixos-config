@@ -15,9 +15,13 @@ spicetify-nix.lib.mkSpicetify pkgs {
 
   enabledSnippets = [
     ''
-      /* Hide Spotify home-page ads without relying on generated class names. */
+      /* Hide Spotify ad surfaces without relying on generated class names. */
       [data-testid="home-ads-container"],
-      [data-testid="home-ad-card"] {
+      [data-testid="home-ad-card"],
+      [data-testid="standalone-video-ad-player"],
+      .NowPlayingView section[aria-label="广告"],
+      [data-testid="playlist-page"] .main-entityHeader-headerText > div:has(a[target="_blank"][rel~="noopener"]),
+      .main-nowPlayingView-headerTextWrapper > .main-trackInfo-overlay {
         display: none !important;
       }
     ''
