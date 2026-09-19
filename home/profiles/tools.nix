@@ -23,7 +23,10 @@
       enableZshIntegration = true;
     };
     git.enable = true;
-    lazygit.enable = true;
+    lazygit = {
+      enable = true;
+      settings.notARepository = "skip";
+    };
     tmux.enable = true;
   };
 }
