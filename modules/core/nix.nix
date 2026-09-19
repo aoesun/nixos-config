@@ -1,5 +1,9 @@
 { nixpkgsInput, ... }:
 {
+  # Keep the system maintenance frontend available even before a user's Home
+  # Manager generation has been activated.
+  programs.nh.enable = true;
+
   # Keep tools that use <nixpkgs> on the same revision as this flake.
   nix.nixPath = [ "nixpkgs=${nixpkgsInput}" ];
 

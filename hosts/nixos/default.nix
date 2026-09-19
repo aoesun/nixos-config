@@ -19,6 +19,9 @@
 
   networking.hostName = "nixos";
 
+  # Let `nh os` commands find this host's Flake without an explicit path.
+  programs.nh.flake = "/home/ryuk/nixos-config";
+
   # Prefer compressed RAM for routine memory pressure, then fall back to the
   # host's disk-backed swap. Keep this host-specific rather than imposing the
   # same memory policy on every machine that imports the core modules.
