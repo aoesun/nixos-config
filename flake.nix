@@ -13,6 +13,11 @@
     # compiled locally on this VM.
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
 
+    silentSDDM = {
+      url = "github:uiriansan/SilentSDDM";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,6 +34,7 @@
       nixpkgs,
       home-manager,
       noctalia,
+      silentSDDM,
       spicetify-nix,
       rime-ice,
       ...
@@ -47,7 +53,7 @@
           inherit system;
           specialArgs = {
             nixpkgsInput = nixpkgs;
-            inherit noctalia;
+            inherit noctalia silentSDDM;
             rimeIce = rime-ice;
           };
           modules = [

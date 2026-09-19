@@ -2,19 +2,12 @@
   config,
   lib,
   pkgs,
+  silentSDDM,
   ...
 }:
 
 let
   cfg = config.desktop;
-  plasmaEnabled = builtins.elem cfg.session [
-    "plasma"
-    "both"
-  ];
-  niriEnabled = builtins.elem cfg.session [
-    "niri"
-    "both"
-  ];
 
   plasmaWaylandSession = pkgs.runCommand "plasma-wayland-session" {
     passthru.providedSessions = [ "plasma" ];
@@ -26,6 +19,7 @@ let
 in
 {
   imports = [
+    silentSDDM.nixosModules.default
     ./input-method.nix
     ./niri.nix
     ./plasma.nix
@@ -44,19 +38,29 @@ in
   config = {
     fonts.packages = [ pkgs.nerd-fonts.fira-code ];
 
+    programs.silentSDDM = {
+      enable = true;
+      theme = "default";
+    };
+
+    # Xorg is only used to render SDDM. The selectable desktop sessions below
+    # remain explicitly limited to their Wayland entries.
+    services.xserver.enable = true;
+
     services.displayManager = {
-      # Keep one display manager regardless of the selected desktop.
-      plasma-login-manager.enable = false;
       sddm = {
         enable = true;
-        wayland.enable = true;
+        # Weston does not reliably hand the active VT over to Niri with
+        # VMware's vmwgfx driver. This only changes the greeter backend;
+        # every selectable desktop session remains Wayland-native.
+        wayland.enable = lib.mkForce false;
       };
 
       # Plasma exposes an X11 entry even when kwin-x11 is excluded, so list
-      # exactly the sessions selected for this host.
+      # exactly the selected Wayland sessions.
       sessionPackages = lib.mkForce (
-        lib.optional plasmaEnabled plasmaWaylandSession
-        ++ lib.optional niriEnabled config.programs.niri.package
+        lib.optionals (cfg.session != "niri") [ plasmaWaylandSession ]
+        ++ lib.optionals (cfg.session != "plasma") [ config.programs.niri.package ]
       );
     };
   };
