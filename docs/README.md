@@ -10,6 +10,7 @@
 - [Home Manager 用户环境](home-manager.md)：跨发行版用户软件、Neovim、Yazi、Zsh 和命令行体验。
 - [日常维护与部署](operations.md)：检查、重建、更新、回滚和 Git 工作流。
 - [更新软件与内核](updating.md)：更新 Flake 输入、比较版本、切换系统和处理内核更新。
+- [使用 Disko 重装 VMware 虚拟机](installing-vm-with-disko.md)：从安装介质声明式创建磁盘并安装当前 `nixos` 输出。
 - [在实体机上安装](installing-physical-machine.md)：新增实体机主机输出、生成硬件配置及安装流程。
 
 ## 配置文件索引

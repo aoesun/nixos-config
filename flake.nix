@@ -18,6 +18,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    disko = {
+      url = "github:nix-community/disko/latest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -35,6 +40,7 @@
       home-manager,
       noctalia,
       silentSDDM,
+      disko,
       spicetify-nix,
       rime-ice,
       ...
@@ -58,6 +64,7 @@
           };
           modules = [
             home-manager.nixosModules.home-manager
+            disko.nixosModules.disko
             hostModule
           ];
         };
