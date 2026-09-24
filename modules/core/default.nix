@@ -1,6 +1,7 @@
 { pkgs, ... }:
 {
   imports = [
+    ./impermanence.nix
     ./nix.nix
     ./ssh.nix
   ];

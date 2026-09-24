@@ -23,6 +23,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    impermanence = {
+      url = "github:nix-community/impermanence";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -41,6 +47,7 @@
       noctalia,
       silentSDDM,
       disko,
+      impermanence,
       spicetify-nix,
       rime-ice,
       ...
@@ -65,6 +72,9 @@
           modules = [
             home-manager.nixosModules.home-manager
             disko.nixosModules.disko
+            # Loading the module only declares persistence options. Nothing is
+            # persisted or rolled back until a host configures those options.
+            impermanence.nixosModules.impermanence
             hostModule
           ];
         };

@@ -92,8 +92,10 @@
     };
   };
 
-  # Impermanence may need persistent state during the early boot process.
+  # Impermanence prepares bind mounts during early boot. Both the persistence
+  # store and filesystems containing its mount targets must be available then.
   fileSystems."/persist".neededForBoot = true;
+  fileSystems."/home".neededForBoot = true;
 
   # Periodic TRIM is a conservative default for SSD-backed physical and
   # virtual disks.
