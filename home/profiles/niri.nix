@@ -8,30 +8,12 @@ in
 
     # Niri starts Noctalia itself, so it remains isolated from Plasma sessions.
     systemd.enable = false;
+  };
 
-    settings = {
-      shell = {
-        font = "FiraCode Nerd Font";
-        settings_show_advanced = true;
-      };
-
-      theme = {
-        mode = "dark";
-        source = "builtin";
-        builtin = "Catppuccin";
-      };
-
-      wallpaper = {
-        enabled = true;
-        default.path = "${config.home.homeDirectory}/nixos-config/wallpaper.png";
-      };
-
-      backdrop = {
-        enabled = true;
-        blur_intensity = 0.5;
-        tint_intensity = 0.3;
-      };
-    };
+  # Keep frequently edited shell settings outside the Nix store. Noctalia
+  # hot-reloads this file and writes temporary GUI overrides to XDG state.
+  xdg.configFile."noctalia/config.toml" = {
+    source = config.lib.file.mkOutOfStoreSymlink "${dotfiles}/noctalia/config.toml";
   };
 
   # Keep compositor configuration editable without rebuilding.
