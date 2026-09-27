@@ -42,6 +42,20 @@
               "nixos"
             ];
 
+            # Disko runs this after creating all subvolumes and before mounting
+            # them. Preserve the initial empty root as the rollback template.
+            postCreateHook = ''
+              MNTPOINT=$(mktemp -d)
+              mount "$device" "$MNTPOINT" -o subvol=/
+              trap 'umount "$MNTPOINT"; rmdir "$MNTPOINT"' EXIT
+
+              if ! btrfs subvolume show "$MNTPOINT/root-blank" >/dev/null 2>&1; then
+                btrfs subvolume snapshot -r \
+                  "$MNTPOINT/root" \
+                  "$MNTPOINT/root-blank"
+              fi
+            '';
+
             # Keep these as sibling subvolumes. Only /root is recreated at
             # boot; /home, /nix, /persist, and /swap remain intact.
             subvolumes = {
