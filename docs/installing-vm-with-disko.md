@@ -20,11 +20,17 @@
     ├── /home                              -> /home
     ├── /nix                               -> /nix
     ├── /persist                           -> /persist
-    └── /swap, 8 GiB swapfile              -> /.swapvol
+    ├── /swap, 8 GiB swapfile              -> /.swapvol
+    └── /root-blank, read-only snapshot     (not mounted)
 ```
 
-Btrfs 子卷共享 `system` 分区的可用空间。`/persist` 为将来的 Impermanence
-预留；首次安装时不会自动清空 `/root`。
+Btrfs 子卷共享 `system` 分区的可用空间。每次启动时，initrd systemd 服务都会删除可写的
+`/root` 子卷，并从只读的 `/root-blank` 快照重新创建它；`/home`、`/nix`、
+`/persist` 和 swap 子卷不会被清除。
+
+这是较保守的 Impermanence 布局：整个 `/home` 持久化，系统身份、SSH 主机密钥、
+NetworkManager 连接、日志及少量系统状态通过 `/persist` 保存。以后若希望用户目录也
+采用白名单模式，再单独拆分，不与首次重装同时进行。
 
 ## 安装前准备
 
@@ -112,8 +118,8 @@ lsblk "$INSTALL_DISK"
 
 ## 4. 切换主机配置到 Disko
 
-仓库日常状态只加载 Disko 模块，不导入未来磁盘布局。安装时需要在工作副本中完成
-以下变更。
+仓库日常状态只加载 Disko 和 Impermanence 模块，不导入未来磁盘布局，因此当前虚拟机
+不会开始清空根目录。安装时需要在工作副本中完成以下变更。
 
 在 `hosts/nixos/default.nix` 的 `imports` 中加入：
 
@@ -148,6 +154,9 @@ nix flake check --no-build
 ```
 
 暂存不等于提交；它只是让本地 Flake 求值能够看到新文件。
+
+> 导入 `disko-config.nix` 同时会启用 Impermanence 和启动阶段的根子卷回滚。安装完成后
+> 必须保留该导入；不要把它当成只在格式化时使用的一次性改动。
 
 ## 5. 生成并检查 Disko 操作
 
@@ -198,7 +207,26 @@ swapon --show
 
 如果挂载结果不符合预期，不要运行 `nixos-install`。
 
-## 7. 重新生成硬件配置
+## 7. 创建空白根快照
+
+根子卷回滚需要一个只读的 `root-blank` 快照。它必须在 Disko 创建并挂载文件系统之后、
+`nixos-install` 写入系统之前创建：
+
+```bash
+BTRFS_DEVICE="$(findmnt -no SOURCE /mnt | sed 's/\[.*$//')"
+sudo mkdir -p /tmp/btrfs-top
+sudo mount -t btrfs -o subvolid=5 "$BTRFS_DEVICE" /tmp/btrfs-top
+sudo btrfs subvolume snapshot -r \
+  /tmp/btrfs-top/root \
+  /tmp/btrfs-top/root-blank
+sudo btrfs subvolume show /tmp/btrfs-top/root-blank
+sudo umount /tmp/btrfs-top
+```
+
+如果最后的检查失败，不要继续安装。每次重新运行 Disko 的 `destroy,format,mount` 都会
+清除该快照，之后必须重新执行本节。
+
+## 8. 重新生成硬件配置
 
 为这台新虚拟机生成硬件信息，但不要重新生成文件系统定义：
 
@@ -222,7 +250,7 @@ nix flake check --no-build
 nix build .#nixosConfigurations.nixos.config.system.build.toplevel
 ```
 
-## 8. 安装 NixOS
+## 9. 安装 NixOS
 
 执行安装：
 
@@ -237,6 +265,16 @@ sudo nixos-install --root /mnt --flake .#nixos
 sudo nixos-enter --root /mnt -c 'passwd ryuk'
 ```
 
+由于第一次启动前还没有运行 Impermanence 激活脚本，需要把刚设置的密码数据库主动放入
+持久化源目录，否则第一次根子卷回滚会丢失密码：
+
+```bash
+sudo install -D -m 000 /mnt/etc/shadow /mnt/persist/etc/shadow
+```
+
+这里只持久化密码散列。`passwd`、`group` 等账户定义仍由 NixOS 配置在每次启动时生成，
+不要持久化整个 `/etc`。
+
 安装环境中的 `~/nixos-config` 位于 ISO 的临时文件系统，重启后会消失。将包含新硬件
 配置的工作副本复制到目标系统，或者在重启前提交并推送到远端：
 
@@ -249,7 +287,7 @@ sudo nixos-enter --root /mnt -c \
 如果 dotfiles 没有通过远端仓库恢复，也应在此时复制到 `/mnt/home/ryuk/dotfiles` 并
 修正所有者。确认密码设置和配置保存都成功后再重启。
 
-## 9. 重启并验证
+## 10. 重启并验证
 
 ```bash
 sudo reboot
@@ -278,7 +316,18 @@ lsblk -f
 - `ryuk` 可以登录并使用 sudo；
 - `nix flake check --no-build` 和 `nixos-rebuild switch` 可以重复成功执行。
 
-## 10. 安装后整理仓库
+验证 Impermanence 时，在临时根目录和持久化 home 中分别创建标记：
+
+```bash
+sudo touch /etc/impermanence-root-test
+touch ~/impermanence-home-test
+sudo reboot
+```
+
+重启后，`/etc/impermanence-root-test` 应消失，`~/impermanence-home-test` 应仍然存在；
+`/etc/machine-id`、SSH 主机密钥和 NetworkManager 连接也应保持不变。
+
+## 11. 安装后整理仓库
 
 确认新系统稳定后，检查并提交安装阶段产生的配置变化：
 
@@ -292,23 +341,11 @@ git diff --cached
 - `disko-config.nix` 的设备路径是否应该进入仓库；
 - 新生成的硬件模块是否只包含这台虚拟机的硬件信息；
 - `hardware-configuration.nix` 不再包含重复的文件系统和 swap 声明；
+- `hosts/nixos/default.nix` 继续导入 `disko-config.nix`；
 - 没有临时密钥、密码或安装介质路径进入 Git。
 
 如果不希望把某台虚拟机的磁盘 ID 固定进仓库，可以继续保留
 `lib.mkDefault` 占位符，并在安装时使用临时工作副本替换它。
-
-## 以后加入 Impermanence
-
-首次安装先保持所有子卷正常持久化。确认磁盘和系统安装稳定后，再单独完成：
-
-1. 加入 Impermanence input 和 NixOS/Home Manager 模块；
-2. 声明 `/persist` 中的系统与用户白名单；
-3. 实现启动阶段重建 `/root`；
-4. 测试密码、SSH、NetworkManager、日志和用户应用状态；
-5. 最后决定是否取消整个 `/home` 子卷的永久挂载。
-
-不要在首次 Disko 安装中同时启用根子卷自动清空，以免把分区、启动与持久化问题混在
-一次调试中。
 
 ## 故障处理原则
 
@@ -316,5 +353,7 @@ git diff --cached
 - 格式化完成但安装失败时，通常可以修正配置后重新运行 `nixos-install`，无需再次
   `destroy`。
 - 需要重新挂载已有布局时只使用 Disko 的 `mount` 模式，不要使用 `destroy`。
+- initrd 报告缺少 `root-blank` 时，从 ISO 启动并挂载 Btrfs 顶层，确认或重新创建快照；
+  不要绕过检查后继续启动，以免误以为根目录仍受 Impermanence 管理。
 - 系统无法启动时可从 ISO 进入，挂载已有布局后使用 `nixos-enter --root /mnt` 修复。
 - VMware 快照可以辅助测试，但不代替仓库、用户文件和重要数据的外部备份。
