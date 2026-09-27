@@ -1,14 +1,11 @@
 { lib, pkgs, ... }:
 
 {
-  # Installation-time disk layout for the future 64 GiB system disk.
-  #
-  # This file is intentionally not imported by the running host yet. Before
-  # using Disko, replace the placeholder below with the target disk's stable
-  # /dev/disk/by-id path and verify it from the installation environment.
+  # Disk layout for a single-disk 64 GiB VMware guest. Verify /dev/sda from the
+  # installation environment before running any destructive Disko command.
   disko.devices.disk.system = {
     type = "disk";
-    device = lib.mkDefault "/dev/disk/by-id/REPLACE_WITH_TARGET_DISK";
+    device = lib.mkDefault "/dev/sda";
 
     content = {
       type = "gpt";

@@ -93,6 +93,17 @@
       # The output name matches the current hostname, so `--flake .` selects it.
       nixosConfigurations.nixos = mkSystem ./hosts/nixos;
 
+      # Minimal reusable output for partitioning a fresh VMware disk. It does
+      # not import the hardware configuration of the currently running host.
+      nixosConfigurations.nixos-installer = nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          disko.nixosModules.disko
+          impermanence.nixosModules.impermanence
+          ./hosts/nixos/installer.nix
+        ];
+      };
+
       # This uses the same module as the NixOS integration and can be activated
       # on any x86_64 Linux distribution with Home Manager installed.
       homeConfigurations = {

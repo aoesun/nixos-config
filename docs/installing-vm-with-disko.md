@@ -6,7 +6,7 @@
 
 > **警告：** Disko 的 `destroy,format,mount` 模式会清除配置中指定磁盘的分区表和
 > 全部数据。不要在当前正在使用的系统盘上测试该命令。执行前必须单独核对目标磁盘
-> 的容量、型号和 `/dev/disk/by-id` 路径。
+> 的设备路径、容量和型号。
 
 ## 目标布局
 
@@ -41,6 +41,7 @@ NetworkManager 连接、日志及少量系统状态通过 `/persist` 保存。�
 - `disko` Flake input 及对应的 `flake.lock`；
 - `disko.nixosModules.disko` 模块加载；
 - `hosts/nixos/disko-config.nix`；
+- `hosts/nixos/installer.nix` 和 `nixosConfigurations.nixos-installer` 输出；
 - 其余 NixOS、Home Manager 和 dotfiles 配置。
 
 不要依赖待重装虚拟机磁盘中的唯一一份配置仓库。
@@ -98,65 +99,29 @@ ls -l /dev/disk/by-id
 
 目标应是约 64 GiB 的 VMware 虚拟磁盘。`sr0` 通常是安装 ISO，不能作为目标。
 
-优先记录稳定的 `by-id` 路径，例如：
-
-```text
-/dev/disk/by-id/scsi-36000c29...
-```
-
-如果安装环境没有为虚拟磁盘提供 `by-id`，单磁盘虚拟机通常是 `/dev/sda`，但仍须
-根据容量和型号再次核对。
-
-为了后续命令清楚显示目标，可以设置变量：
+当前单磁盘 VMware 配置默认使用 `/dev/sda`。为了后续命令清楚显示目标，可以设置变量：
 
 ```bash
-INSTALL_DISK=/dev/disk/by-id/REPLACE_WITH_ACTUAL_ID
+INSTALL_DISK=/dev/sda
 lsblk "$INSTALL_DISK"
 ```
 
-不要在尚未替换占位路径时继续。
+输出必须仍然是约 64 GiB 的 VMware 磁盘，不能是安装介质。如果虚拟机拥有多块磁盘，
+必须先修改 `hosts/nixos/disko-config.nix` 的 `device`，不能沿用默认值。
 
-## 4. 切换主机配置到 Disko
+## 4. 检查独立安装配置
 
-仓库日常状态只加载 Disko 和 Impermanence 模块，不导入未来磁盘布局，因此当前虚拟机
-不会开始清空根目录。安装时需要在工作副本中完成以下变更。
+`nixosConfigurations.nixos-installer` 只导入 Disko 布局和最小 VMware 硬件信息，不会
+加载当前旧虚拟机的 `hardware-configuration.nix`。因此格式化之前无需删除、替换或创建
+占位硬件配置。
 
-在 `hosts/nixos/default.nix` 的 `imports` 中加入：
-
-```nix
-./disko-config.nix
-```
-
-从 `hosts/nixos/hardware-configuration.nix` 删除整个 `fileSystems` 和
-`swapDevices` 定义，但保留下列硬件信息：
-
-```nix
-boot.initrd.availableKernelModules
-boot.initrd.kernelModules
-boot.kernelModules
-boot.extraModulePackages
-nixpkgs.hostPlatform
-```
-
-将 `hosts/nixos/disko-config.nix` 中的设备占位符换成刚才确认的目标：
-
-```nix
-device = lib.mkDefault "/dev/disk/by-id/REPLACE_WITH_ACTUAL_ID";
-```
-
-如果选择直接写 `/dev/sda`，执行 Disko 前必须再次检查它确实是 64 GiB 目标盘。
-
-Flake 默认忽略未跟踪文件，因此先暂存安装所需改动：
+先确认安装输出能够求值：
 
 ```bash
-git add flake.nix flake.lock hosts/nixos
-nix flake check --no-build
+nix eval .#nixosConfigurations.nixos-installer.config.system.build.toplevel.drvPath
 ```
 
-暂存不等于提交；它只是让本地 Flake 求值能够看到新文件。
-
-> 导入 `disko-config.nix` 同时会启用 Impermanence 和启动阶段的根子卷回滚。安装完成后
-> 必须保留该导入；不要把它当成只在格式化时使用的一次性改动。
+该输出只用于准备磁盘，不是最终安装的桌面系统。
 
 ## 5. 生成并检查 Disko 操作
 
@@ -166,7 +131,7 @@ nix flake check --no-build
 sudo nix run github:nix-community/disko/latest#disko -- \
   --dry-run \
   --mode destroy,format,mount \
-  --flake .#nixos
+  --flake .#nixos-installer
 ```
 
 再次核对：
@@ -183,7 +148,7 @@ lsblk -e7 -o NAME,PATH,SIZE,MODEL,TYPE,FSTYPE,MOUNTPOINTS
 ```bash
 sudo nix run github:nix-community/disko/latest#disko -- \
   --mode destroy,format,mount \
-  --flake .#nixos
+  --flake .#nixos-installer
 ```
 
 Disko 默认挂载到 `/mnt`。完成后检查：
@@ -244,6 +209,21 @@ grep -E 'fileSystems|swapDevices' hosts/nixos/hardware-configuration.nix
 ```
 
 该命令没有输出才符合预期。然后再次验证：
+
+在 `hosts/nixos/default.nix` 的 `imports` 中加入正式磁盘布局：
+
+```nix
+./disko-config.nix
+```
+
+该导入必须在安装后继续保留，因为它同时提供正式系统的文件系统、swap、Impermanence
+开关和 initrd 根子卷回滚服务。暂存安装阶段产生的修改：
+
+```bash
+git add hosts/nixos/default.nix hosts/nixos/hardware-configuration.nix
+```
+
+然后验证正式系统：
 
 ```bash
 nix flake check --no-build
@@ -344,8 +324,8 @@ git diff --cached
 - `hosts/nixos/default.nix` 继续导入 `disko-config.nix`；
 - 没有临时密钥、密码或安装介质路径进入 Git。
 
-如果不希望把某台虚拟机的磁盘 ID 固定进仓库，可以继续保留
-`lib.mkDefault` 占位符，并在安装时使用临时工作副本替换它。
+当前仓库默认 `/dev/sda`，适合这里的单磁盘 VMware 虚拟机。如果以后用于多磁盘机器或
+物理机，应改成已核对的稳定 `/dev/disk/by-id` 路径，或为不同主机分别覆盖该默认值。
 
 ## 故障处理原则
 
