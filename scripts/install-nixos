@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+readonly NIXOS_REPOSITORY="https://github.com/aoesun/nixos-config.git"
+readonly DOTFILES_REPOSITORY="https://github.com/aoesun/dotfiles.git"
+readonly HOST="nixos"
+readonly TARGET_ROOT="/mnt"
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+die() {
+  printf 'error: %s\n' "$*" >&2
+  exit 1
+}
+
+[[ $EUID -eq 0 ]] || die "run this installer as root"
+[[ -d /sys/firmware/efi ]] || die "the installer was not booted in UEFI mode"
+[[ -f "$repo_root/flake.nix" ]] || die "cannot find flake.nix at $repo_root"
+
+export NIX_CONFIG=$'experimental-features = nix-command flakes\n'"${NIX_CONFIG:-}"
+
+disk="$({
+  nix eval --raw \
+    "$repo_root#nixosConfigurations.$HOST.config.disko.devices.disk.system.device"
+} 2>/dev/null)" || die "cannot evaluate the declared installation disk"
+disk="$(readlink -f -- "$disk")"
+
+[[ -b "$disk" ]] || die "$disk is not a block device"
+
+printf 'The following disk will be erased completely:\n\n'
+lsblk -o NAME,PATH,SIZE,MODEL,TYPE,FSTYPE,MOUNTPOINTS "$disk"
+printf '\nType the exact device path (%s) to continue: ' "$disk"
+read -r confirmation
+[[ "$confirmation" == "$disk" ]] || die "confirmation did not match; nothing was changed"
+
+printf '\nPartitioning, formatting, and mounting %s...\n' "$disk"
+nix run github:nix-community/disko/latest -- \
+  --mode destroy,format,mount \
+  --flake "$repo_root#$HOST"
+
+mountpoint -q "$TARGET_ROOT" || die "$TARGET_ROOT was not mounted by Disko"
+mountpoint -q "$TARGET_ROOT/home" || die "$TARGET_ROOT/home was not mounted by Disko"
+mountpoint -q "$TARGET_ROOT/nix" || die "$TARGET_ROOT/nix was not mounted by Disko"
+mountpoint -q "$TARGET_ROOT/persist" || die "$TARGET_ROOT/persist was not mounted by Disko"
+
+install -d -m 0755 "$TARGET_ROOT/home/ryuk"
+
+printf '\nCloning the editable dotfiles working tree...\n'
+git clone "$DOTFILES_REPOSITORY" "$TARGET_ROOT/home/ryuk/dotfiles"
+
+printf '\nCopying the exact NixOS configuration used by this installation...\n'
+cp -a "$repo_root" "$TARGET_ROOT/home/ryuk/nixos-config"
+git -C "$TARGET_ROOT/home/ryuk/nixos-config" remote set-url origin "$NIXOS_REPOSITORY"
+
+printf '\nInstalling NixOS...\n'
+nixos-install \
+  --root "$TARGET_ROOT" \
+  --flake "$repo_root#$HOST" \
+  --no-root-passwd \
+  --show-trace
+
+nixos-enter --root "$TARGET_ROOT" --command \
+  'chown -R ryuk:users /home/ryuk/dotfiles /home/ryuk/nixos-config'
+
+printf '\nInstallation completed successfully.\n'
+printf 'Disconnect the ISO, reboot, log in as ryuk with the temporary password, '
+printf 'and immediately run passwd.\n'

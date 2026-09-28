@@ -1,8 +1,8 @@
 # 使用 Disko 安装 VMware 虚拟机
 
 本配置用于从 NixOS Minimal ISO 将 `nixosConfigurations.nixos` 安装到一块 64 GiB 的
-VMware 虚拟磁盘。Disko 会清空 `/dev/sda`，创建 Btrfs 子卷、Impermanence 空白根快照和
-swapfile，然后由 `disko-install` 直接安装完整系统。
+VMware 虚拟磁盘。安装脚本会检查 UEFI、要求再次确认目标磁盘，再调用 Disko 创建 Btrfs
+布局、准备两个配置仓库并安装完整系统。
 
 > **警告：** 最后的安装命令会不可恢复地清除 `/dev/sda`。执行前必须确认它确实是目标盘。
 
@@ -50,11 +50,10 @@ sudo systemctl start sshd
 ip -br address
 ```
 
-连接后进入 root shell，并临时启用 Flakes：
+连接后进入 root shell：
 
 ```bash
 sudo -i
-export NIX_CONFIG='experimental-features = nix-command flakes'
 ```
 
 如果 SSH 提示 `xterm-ghostty: unknown terminal type`，执行：
@@ -92,25 +91,23 @@ Disko 单独负责文件系统和 swap 定义。
 
 ## 4. 安装
 
-再次确认目标磁盘后执行：
+脚本会从配置求值目标磁盘、显示 `lsblk` 信息，并要求输入完整设备路径后才会清盘：
 
 ```bash
-nix run github:nix-community/disko/latest#disko-install -- \
-  --mode format \
-  --write-efi-boot-entries \
-  --flake .#nixos \
-  --disk system /dev/sda
+./scripts/install-nixos
 ```
 
-这条命令会自动完成：
+脚本会自动完成：
 
 1. 清空并格式化 `/dev/sda`；
 2. 创建并挂载 Btrfs 子卷；
 3. 创建只读 `root-blank` 快照；
-4. 构建并安装 NixOS；
-5. 安装 systemd-boot 并写入 EFI 启动项。
+4. 克隆可直接编辑的 `dotfiles` 工作仓库；
+5. 将本次实际使用的 NixOS 配置工作树复制到新系统；
+6. 构建并安装 NixOS；
+7. 修正两个工作仓库的所有权并安装 systemd-boot。
 
-看到 `disko-install succeeded` 后重启：
+看到 `Installation completed successfully.` 后重启：
 
 ```bash
 reboot
@@ -133,11 +130,8 @@ Password: admin
 passwd
 ```
 
-`/etc/shadow` 已由 Impermanence 持久化，因此新密码会跨重启保留。随后重新克隆工作仓库：
-
-```bash
-git clone https://github.com/aoesun/nixos-config.git ~/nixos-config
-```
+`/etc/shadow` 已由 Impermanence 持久化，因此新密码会跨重启保留。两个工作仓库已经位于
+`~/nixos-config` 和 `~/dotfiles`，无需再次克隆。
 
 ## 简单验证
 
@@ -163,9 +157,9 @@ sudo reboot
 
 ## 注意事项
 
-- 如果安装失败并决定从头重来，重新从 ISO 启动并再次执行安装命令即可；`format` 模式会
-  清除之前的失败安装。
-- 如果只是修复已有系统，应使用 `disko-install --mode mount`，不要使用 `format`。
-- 当前磁盘名 `system` 对应 `disko.devices.disk.system`，`--disk system /dev/sda` 会覆盖
-  配置中的默认设备路径。
+- 如果 Disko 完成后 `nixos-install` 失败，不要立刻再次运行完整脚本。修正问题后，可在仍然
+  挂载的 `/mnt` 上单独重试 `nixos-install`。
+- 如果安装失败并决定从头重来，重新从 UEFI 模式的 ISO 启动并再次执行脚本即可。
+- 脚本采用 `disko.devices.disk.system.device` 声明的设备。更换磁盘路径时必须先修改并检查
+  `hosts/nixos/disko-config.nix`，不能只在命令行临时替换。
 - 初始密码 `admin` 只用于首次登录。系统安装完成后必须立即运行 `passwd` 修改密码。

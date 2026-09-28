@@ -115,6 +115,7 @@
     description = "Restore the ephemeral Btrfs root subvolume";
     requiredBy = [ "sysroot.mount" ];
     before = [ "sysroot.mount" ];
+    requires = [ "dev-disk-by\\x2dlabel-nixos.device" ];
     after = [ "dev-disk-by\\x2dlabel-nixos.device" ];
     unitConfig.DefaultDependencies = "no";
     path = [
