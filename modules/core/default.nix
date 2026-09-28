@@ -3,7 +3,6 @@
   imports = [
     ./impermanence.nix
     ./nix.nix
-    ./secrets.nix
     ./ssh.nix
   ];
 
@@ -20,6 +19,9 @@
   users.users.ryuk = {
     isNormalUser = true;
     description = "Ryuk";
+    # Temporary bootstrap password. It must be changed with `passwd`
+    # immediately after the system installation is complete.
+    initialPassword = "admin";
     extraGroups = [
       "networkmanager"
       "wheel"

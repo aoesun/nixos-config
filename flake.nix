@@ -29,11 +29,6 @@
       inputs.home-manager.follows = "home-manager";
     };
 
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -53,7 +48,6 @@
       silentSDDM,
       disko,
       impermanence,
-      sops-nix,
       spicetify-nix,
       rime-ice,
       ...
@@ -81,7 +75,6 @@
             # Loading the module only declares persistence options. Nothing is
             # persisted or rolled back until a host configures those options.
             impermanence.nixosModules.impermanence
-            sops-nix.nixosModules.sops
             hostModule
           ];
         };
