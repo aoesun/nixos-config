@@ -109,8 +109,8 @@
   environment.persistence."/persist".enable = true;
 
   # Restore the writable root subvolume from the read-only root-blank snapshot
-  # before it is mounted. The installation guide creates that snapshot after
-  # Disko formats the target disk and before nixos-install populates /root.
+  # before it is mounted. Disko creates that snapshot immediately after it
+  # formats the target disk and before the installer populates /root.
   boot.initrd.systemd.services.impermanence-root-rollback = {
     description = "Restore the ephemeral Btrfs root subvolume";
     requiredBy = [ "sysroot.mount" ];

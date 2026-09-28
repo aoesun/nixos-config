@@ -2,6 +2,7 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ./disko-config.nix
     ../../modules/core
     ../../modules/desktop
     ../../modules/home-manager.nix

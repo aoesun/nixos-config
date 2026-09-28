@@ -3,6 +3,7 @@
   imports = [
     ./impermanence.nix
     ./nix.nix
+    ./secrets.nix
     ./ssh.nix
   ];
 

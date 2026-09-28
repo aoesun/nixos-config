@@ -41,10 +41,15 @@ NetworkManager 连接、日志及少量系统状态通过 `/persist` 保存。�
 - `disko` Flake input 及对应的 `flake.lock`；
 - `disko.nixosModules.disko` 模块加载；
 - `hosts/nixos/disko-config.nix`；
-- `hosts/nixos/installer.nix` 和 `nixosConfigurations.nixos-installer` 输出；
 - 其余 NixOS、Home Manager 和 dotfiles 配置。
 
 不要依赖待重装虚拟机磁盘中的唯一一份配置仓库。
+
+### 重新开始失败的安装
+
+如果此前的安装已经失败，最稳妥的做法是重新从 Minimal ISO 启动，再从本文第 1 步开始。
+不需要手动删除旧分区、子卷或快照；第 6 步的 `destroy,format,mount` 会清除目标磁盘上的
+旧安装并重新创建完整布局。重新执行前仍须再次核对 `/dev/sda`，因为该操作不可恢复。
 
 ### VMware 设置
 
@@ -77,13 +82,51 @@ timedatectl
 
 如果需要 Wi-Fi，可使用安装环境提供的 NetworkManager 或 `nmtui` 连接。
 
-## 2. 取得配置仓库
+### 可选：从宿主机通过 SSH 安装
 
-从远端克隆：
+在虚拟机控制台给安装环境的 `nixos` 用户设置临时密码，并启动 SSH：
 
 ```bash
-git clone <repository-url> ~/nixos-config
-cd ~/nixos-config
+sudo passwd nixos
+sudo systemctl start sshd
+ip -br address
+```
+
+在宿主机连接显示出的虚拟机地址：
+
+```bash
+ssh nixos@<虚拟机IP>
+```
+
+Ghostty 会传递 `TERM=xterm-ghostty`，而 Minimal ISO 可能没有对应 terminfo。出现
+`unknown terminal type` 时，在 SSH 会话执行：
+
+```bash
+export TERM=xterm-256color
+```
+
+随后进入 root shell：
+
+```bash
+sudo -i
+```
+
+以下安装步骤均假定提示符为 `root@nixos`。已经是 root 时不要再使用 `sudo`，否则
+`sudo` 可能清除后面设置的 `NIX_CONFIG` 环境变量。
+
+## 2. 启用 Flakes 并取得配置仓库
+
+Minimal ISO 默认可能未启用新式 Nix 命令和 Flakes。为当前 root shell 临时启用：
+
+```bash
+export NIX_CONFIG='experimental-features = nix-command flakes'
+```
+
+通过公开 HTTPS 地址克隆仓库，无需 GitHub 用户名或密码：
+
+```bash
+git clone https://github.com/aoesun/nixos-config.git /home/nixos/nixos-config
+cd /home/nixos/nixos-config
 ```
 
 也可以从只读共享目录或其他介质复制。私有仓库所需的临时凭据不要提交到仓库。
@@ -93,9 +136,11 @@ cd ~/nixos-config
 查看全部块设备：
 
 ```bash
-lsblk -e7 -o NAME,PATH,SIZE,MODEL,SERIAL,TYPE,FSTYPE,MOUNTPOINTS
-ls -l /dev/disk/by-id
+lsblk -e7
 ```
+
+`-e7` 只隐藏无关的 loop 设备。默认列已经包含设备名、容量、类型和挂载点，足以识别
+这台固定为单块 64 GiB 磁盘的虚拟机；现有文件系统类型不影响 Disko 随后清空目标盘。
 
 目标应是约 64 GiB 的 VMware 虚拟磁盘。`sr0` 通常是安装 ISO，不能作为目标。
 
@@ -109,168 +154,103 @@ lsblk "$INSTALL_DISK"
 输出必须仍然是约 64 GiB 的 VMware 磁盘，不能是安装介质。如果虚拟机拥有多块磁盘，
 必须先修改 `hosts/nixos/disko-config.nix` 的 `device`，不能沿用默认值。
 
-## 4. 检查独立安装配置
+## 4. 准备 sops-nix 解密密钥
 
-`nixosConfigurations.nixos-installer` 只导入 Disko 布局和最小 VMware 硬件信息，不会
-加载当前旧虚拟机的 `hardware-configuration.nix`。因此格式化之前无需删除、替换或创建
-占位硬件配置。
-
-先确认安装输出能够求值：
-
-```bash
-nix eval .#nixosConfigurations.nixos-installer.config.system.build.toplevel.drvPath
-```
-
-该输出只用于准备磁盘，不是最终安装的桌面系统。
-
-## 5. 生成并检查 Disko 操作
-
-先使用 `--dry-run`。它只生成脚本路径，不执行磁盘修改：
-
-```bash
-sudo nix run github:nix-community/disko/latest#disko -- \
-  --dry-run \
-  --mode destroy,format,mount \
-  --flake .#nixos-installer
-```
-
-再次核对：
-
-```bash
-grep -n 'device =' hosts/nixos/disko-config.nix
-lsblk -e7 -o NAME,PATH,SIZE,MODEL,TYPE,FSTYPE,MOUNTPOINTS
-```
-
-## 6. 清空、格式化并挂载目标盘
-
-只有确认目标正确后，才能执行：
-
-```bash
-sudo nix run github:nix-community/disko/latest#disko -- \
-  --mode destroy,format,mount \
-  --flake .#nixos-installer
-```
-
-Disko 默认挂载到 `/mnt`。完成后检查：
-
-```bash
-findmnt -R /mnt
-lsblk -f
-swapon --show
-```
-
-预期至少包含：
+仓库只保存 `secrets/nixos.yaml` 中加密的用户密码哈希。对应的 age 私钥不能提交到 Git，
+必须在废弃旧虚拟机前安全复制到宿主机或其他可信介质：
 
 ```text
-/mnt
-/mnt/boot
-/mnt/home
-/mnt/nix
-/mnt/persist
-/mnt/.swapvol
+~/.config/sops/age/keys.txt
 ```
 
-如果挂载结果不符合预期，不要运行 `nixos-install`。
-
-## 7. 创建空白根快照
-
-根子卷回滚需要一个只读的 `root-blank` 快照。它必须在 Disko 创建并挂载文件系统之后、
-`nixos-install` 写入系统之前创建：
+将备份的私钥传入当前安装环境，并设置严格权限。例如先复制到 `/tmp/keys.txt`，再执行：
 
 ```bash
-BTRFS_DEVICE="$(findmnt -no SOURCE /mnt | sed 's/\[.*$//')"
-sudo mkdir -p /tmp/btrfs-top
-sudo mount -t btrfs -o subvolid=5 "$BTRFS_DEVICE" /tmp/btrfs-top
-sudo btrfs subvolume snapshot -r \
-  /tmp/btrfs-top/root \
-  /tmp/btrfs-top/root-blank
-sudo btrfs subvolume show /tmp/btrfs-top/root-blank
-sudo umount /tmp/btrfs-top
+install -D -m 600 /tmp/keys.txt /root/.config/sops/age/keys.txt
 ```
 
-如果最后的检查失败，不要继续安装。每次重新运行 Disko 的 `destroy,format,mount` 都会
-清除该快照，之后必须重新执行本节。
-
-## 8. 重新生成硬件配置
-
-为这台新虚拟机生成硬件信息，但不要重新生成文件系统定义：
+验证它可以解密仓库中的密文，但不要打印解密内容：
 
 ```bash
-sudo nixos-generate-config --no-filesystems --root /mnt
-cp /mnt/etc/nixos/hardware-configuration.nix \
+SOPS_AGE_KEY_FILE=/root/.config/sops/age/keys.txt \
+  nix shell nixpkgs#sops -c sops --decrypt secrets/nixos.yaml >/dev/null
+```
+
+安装命令会把该密钥复制到持久化的 `/persist/var/lib/sops-nix/key.txt`。初始用户密码为
+`admin`；这是临时弱密码，首次登录后必须立即执行 `passwd` 修改。仓库中没有保存该明文，
+只有它的随机加盐哈希经过 sops 加密后的密文。
+
+## 5. 检查硬件和正式系统配置
+
+`nixosConfigurations.nixos` 已直接导入 Disko 布局、sops-nix 以及这台 VMware 虚拟机生成的
+`hardware-configuration.nix`，磁盘准备和最终安装使用同一个配置输出。当前硬件文件适用于
+默认 VMware 虚拟硬件；如果重新创建虚拟机时更换了磁盘控制器等设备，先重新生成：
+
+```bash
+mkdir -p /tmp/nixos-hardware
+nixos-generate-config --no-filesystems --root /tmp/nixos-hardware
+cp /tmp/nixos-hardware/etc/nixos/hardware-configuration.nix \
   hosts/nixos/hardware-configuration.nix
-git add hosts/nixos/hardware-configuration.nix
 ```
 
-检查生成文件没有 `fileSystems` 或 `swapDevices`，磁盘挂载仍应完全由 Disko 管理：
+确认硬件文件没有重复声明 Disko 管理的文件系统或 swap，并检查正式系统：
 
 ```bash
 grep -E 'fileSystems|swapDevices' hosts/nixos/hardware-configuration.nix
-```
-
-该命令没有输出才符合预期。然后再次验证：
-
-在 `hosts/nixos/default.nix` 的 `imports` 中加入正式磁盘布局：
-
-```nix
-./disko-config.nix
-```
-
-该导入必须在安装后继续保留，因为它同时提供正式系统的文件系统、swap、Impermanence
-开关和 initrd 根子卷回滚服务。暂存安装阶段产生的修改：
-
-```bash
-git add hosts/nixos/default.nix hosts/nixos/hardware-configuration.nix
-```
-
-然后验证正式系统：
-
-```bash
 nix flake check --no-build
-nix build .#nixosConfigurations.nixos.config.system.build.toplevel
+nix eval .#nixosConfigurations.nixos.config.system.build.toplevel.drvPath
 ```
 
-## 9. 安装 NixOS
+第一条命令应没有输出。该文件已经由 Git 追踪，因此本地修改会直接参与 Flake 求值，无需
+为了构建而先执行 `git add`。
 
-执行安装：
+## 6. 预演 disko-install
+
+`disko-install` 会在一次操作中完成磁盘格式化、挂载、系统安装和 bootloader 安装。
+先执行 dry-run；它只构建并显示将运行的脚本，不会修改磁盘。当前版本的 dry-run 不会
+真正创建默认挂载目录，却仍会解析该目录，因此先准备一个临时目录：
 
 ```bash
-sudo nixos-install --root /mnt --flake .#nixos
+mkdir -p /tmp/disko-install-dry-run
+nix run github:nix-community/disko/latest#disko-install -- \
+  --dry-run \
+  --mode format \
+  --mount-point /tmp/disko-install-dry-run \
+  --write-efi-boot-entries \
+  --flake .#nixos \
+  --disk system /dev/sda \
+  --extra-files /root/.config/sops/age/keys.txt \
+    /persist/var/lib/sops-nix/key.txt
 ```
 
-安装程序可能要求设置 root 密码。当前用户声明没有保存明文密码，因此安装完成后还应
-为 `ryuk` 设置密码：
+`system` 是 `disko.devices.disk.system` 的磁盘名称；`--disk` 会明确把它映射到已经核对的
+`/dev/sda`。再次运行 `lsblk -e7` 确认设备后才能继续。
+
+## 7. 安装 NixOS
+
+执行与预演相同但不带 `--dry-run` 的命令：
 
 ```bash
-sudo nixos-enter --root /mnt -c 'passwd ryuk'
+nix run github:nix-community/disko/latest#disko-install -- \
+  --mode format \
+  --write-efi-boot-entries \
+  --flake .#nixos \
+  --disk system /dev/sda \
+  --extra-files /root/.config/sops/age/keys.txt \
+    /persist/var/lib/sops-nix/key.txt
 ```
 
-由于第一次启动前还没有运行 Impermanence 激活脚本，需要把刚设置的密码数据库主动放入
-持久化源目录，否则第一次根子卷回滚会丢失密码：
+`format` 模式会清除目标盘上的旧安装并重建声明的布局。Disko 的 `postCreateHook` 会在写入
+系统前自动创建只读 `root-blank`，随后 `disko-install` 安装已经构建好的正式系统。
+sops-nix 会在创建用户前解密密码哈希，因此整个过程不需要运行 `passwd`、复制 `/etc/shadow`
+或手动调用 `nixos-install`。
+
+命令显示 `disko-install succeeded` 后即可重启；工具退出时会自动卸载它使用的临时安装目录。
+
+## 8. 重启并验证
 
 ```bash
-sudo install -D -m 000 /mnt/etc/shadow /mnt/persist/etc/shadow
-```
-
-这里只持久化密码散列。`passwd`、`group` 等账户定义仍由 NixOS 配置在每次启动时生成，
-不要持久化整个 `/etc`。
-
-安装环境中的 `~/nixos-config` 位于 ISO 的临时文件系统，重启后会消失。将包含新硬件
-配置的工作副本复制到目标系统，或者在重启前提交并推送到远端：
-
-```bash
-sudo cp -a ~/nixos-config /mnt/home/ryuk/nixos-config
-sudo nixos-enter --root /mnt -c \
-  'chown -R ryuk:users /home/ryuk/nixos-config'
-```
-
-如果 dotfiles 没有通过远端仓库恢复，也应在此时复制到 `/mnt/home/ryuk/dotfiles` 并
-修正所有者。确认密码设置和配置保存都成功后再重启。
-
-## 10. 重启并验证
-
-```bash
-sudo reboot
+reboot
 ```
 
 在 VMware 中断开安装 ISO，确保虚拟机从虚拟磁盘启动。
@@ -286,6 +266,7 @@ findmnt /persist
 swapon --show
 zramctl
 lsblk -f
+sudo btrfs subvolume list -r / | grep 'path root-blank$'
 ```
 
 `swapon --show` 应同时显示高优先级 zram 和较低优先级的 Btrfs swapfile。还应检查：
@@ -295,6 +276,16 @@ lsblk -f
 - VMware 图形、剪贴板和自动分辨率支持正常；
 - `ryuk` 可以登录并使用 sudo；
 - `nix flake check --no-build` 和 `nixos-rebuild switch` 可以重复成功执行。
+
+使用临时密码 `admin` 首次登录后立即修改密码：
+
+```bash
+passwd
+```
+
+当前配置保留 NixOS 默认的可变用户密码，并通过 Impermanence 持久化 `/etc/shadow`，因此
+`passwd` 设置的新密码会跨重启和普通 rebuild 保留。加密哈希主要负责首次创建账户；仍建议
+随后使用 `sops secrets/nixos.yaml` 更新仓库中的恢复基线，不能长期把 `admin` 当作初始密码。
 
 验证 Impermanence 时，在临时根目录和持久化 home 中分别创建标记：
 
@@ -307,13 +298,19 @@ sudo reboot
 重启后，`/etc/impermanence-root-test` 应消失，`~/impermanence-home-test` 应仍然存在；
 `/etc/machine-id`、SSH 主机密钥和 NetworkManager 连接也应保持不变。
 
-## 11. 安装后整理仓库
+## 9. 恢复配置仓库并整理
+
+安装介质中的克隆位于临时文件系统，不会自动复制进新系统。联网后重新克隆：
+
+```bash
+git clone https://github.com/aoesun/nixos-config.git ~/nixos-config
+```
 
 确认新系统稳定后，检查并提交安装阶段产生的配置变化：
 
 ```bash
 git status
-git diff --cached
+git diff
 ```
 
 重点检查：
@@ -323,6 +320,14 @@ git diff --cached
 - `hardware-configuration.nix` 不再包含重复的文件系统和 swap 声明；
 - `hosts/nixos/default.nix` 继续导入 `disko-config.nix`；
 - 没有临时密钥、密码或安装介质路径进入 Git。
+
+如果只有经过检查的硬件配置发生变化，可以提交并推送：
+
+```bash
+git add hosts/nixos/hardware-configuration.nix
+git commit -m "hardware: update configuration for the new VM"
+git push origin main
+```
 
 当前仓库默认 `/dev/sda`，适合这里的单磁盘 VMware 虚拟机。如果以后用于多磁盘机器或
 物理机，应改成已核对的稳定 `/dev/disk/by-id` 路径，或为不同主机分别覆盖该默认值。
