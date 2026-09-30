@@ -151,20 +151,21 @@ sudo nixos-rebuild switch --flake .#nixos
 
 ## Spotify
 
-构建自定义 Spotify：
+列出仓库提供的可安装软件：
 
 ```bash
-nix build .#spotify-spiced
+just software list
 ```
 
-首次安装或升级通过 Nix profile 完成：
+构建并安装自定义 Spotify：
 
 ```bash
-nix profile install .#spotify-spiced
-nix profile upgrade spotify-spiced
+just software spotify
 ```
 
-具体 profile 名称以 `nix profile list` 的结果为准。通过 Spicetify Marketplace 手动安装的扩展属于用户运行时状态，不受本仓库声明式管理。
+模块命令也可以写成 `just software::list` 和 `just software::spotify`，这种形式支持
+shell 补全。具体 profile 名称以 `nix profile list` 的结果为准。通过 Spicetify
+Marketplace 手动安装的扩展属于用户运行时状态，不受本仓库声明式管理。
 
 ## 更新输入
 

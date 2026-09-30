@@ -47,7 +47,8 @@ just
 | `just history` | 查看系统代际历史 |
 | `just clean` | 删除超过 7 天的旧世代并回收不可达 Store 路径 |
 | `just clean-all` | 删除所有非当前世代并回收不可达 Store 路径 |
-| `just spotify` | 构建自定义 Spotify 软件包 |
+| `just software list` | 列出仓库提供的可安装软件 |
+| `just software spotify` | 构建并安装自定义 Spotify 到用户 profile |
 
 这些 recipe 保留了 `test`、`switch`、`update` 等 Nix 原有术语，执行时也会显示底层
 命令。涉及系统激活和清理系统世代的 recipe 仍会正常请求 sudo 密码。`clean` 使用

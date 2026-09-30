@@ -1,5 +1,7 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+mod software
+
 # List available recipes.
 default:
     @just --list
@@ -55,7 +57,3 @@ clean-all:
     nix profile wipe-history
     sudo nix profile wipe-history --profile /nix/var/nix/profiles/system
     nix store gc
-
-# Build the custom Spotify package.
-spotify:
-    nix build .#spotify-spiced -o result-spotify
