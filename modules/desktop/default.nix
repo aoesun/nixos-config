@@ -43,17 +43,12 @@ in
       theme = "default";
     };
 
-    # Xorg is only used to render SDDM. The selectable desktop sessions below
-    # remain explicitly limited to their Wayland entries.
-    services.xserver.enable = true;
-
     services.displayManager = {
       sddm = {
         enable = true;
-        # Weston does not reliably hand the active VT over to Niri with
-        # VMware's vmwgfx driver. This only changes the greeter backend;
-        # every selectable desktop session remains Wayland-native.
-        wayland.enable = lib.mkForce false;
+        # Prefer a Wayland-native greeter. Hosts with incompatible graphics
+        # may override this without changing the desktop sessions themselves.
+        wayland.enable = true;
       };
 
       # Plasma exposes an X11 entry even when kwin-x11 is excluded, so list
