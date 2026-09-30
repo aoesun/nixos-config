@@ -66,7 +66,7 @@ SOPS_AGE_KEY_FILE="$temporary_key" \
 printf '\nSave the verified identity to:\n'
 printf '  1) Current system (%s)\n' "$SYSTEM_KEY_PATH"
 printf '  2) Installation target (%s)\n' "$INSTALL_KEY_PATH"
-printf '  3) Repository secrets directory (%s/secrets/key.txt)\n' "$repo_root"
+printf '  3) Repository private directory (%s/.secrets/key.txt)\n' "$repo_root"
 printf '  4) Custom path\n'
 read -r -p 'Destination [1-4]: ' destination_choice
 
@@ -80,7 +80,7 @@ case "$destination_choice" in
     privileged=true
     ;;
   3)
-    destination="$repo_root/secrets/key.txt"
+    destination="$repo_root/.secrets/key.txt"
     privileged=false
     ;;
   4)

@@ -115,8 +115,23 @@ Disko 单独负责文件系统和 swap 定义。
 ```
 
 脚本会先用恢复出的私钥试解 `secrets/secrets.yaml`，验证成功后才将其安装到当前系统、
-`/mnt` 安装目标、Git 忽略的 `secrets/key.txt` 或指定的绝对路径。sops-nix 的系统密钥
+`/mnt` 安装目标、Git 忽略的 `.secrets/key.txt` 或指定的绝对路径。sops-nix 的系统密钥
 路径仍固定为 `/persist/var/lib/sops-nix/key.txt`。
+
+恢复 age 身份后，可以用通用脚本安全提取 GitHub SSH 私钥或以后添加的其他 secret：
+
+```bash
+./scripts/restore-sops-secret
+```
+
+脚本会自动查找 `/persist/var/lib/sops-nix/key.txt`、`.secrets/key.txt` 或
+`.secrets/age-key.txt`，在临时文件中解密并验证内容，再以注册的权限安装到目标路径。
+新增 secret 时，在脚本顶部的并行注册表数组中增加标签、SOPS 路径、默认目标和校验器即可；
+未注册的 secret 也可以通过 `Custom sops path` 临时提取。
+
+人工恢复出的明文统一保存在仓库的 `.secrets/` 目录；该目录整体被 Git 忽略。通用恢复脚本
+也可以将 secret 直接安装到注册的运行时路径或自定义绝对路径。目标已存在时，脚本先比较
+内容；SSH 私钥不同则显示安全的公钥指纹对比，不输出私钥正文，确认后才允许覆盖。
 
 ## 5. 安装
 
