@@ -155,7 +155,9 @@ Password: bootstrap-secrets 中设置的密码
 ```
 
 用户数据库会在每次激活时由 NixOS 声明式生成，密码哈希由 sops-nix 提供。两个工作仓库
-已经位于 `~/nixos-config` 和 `~/dotfiles`，无需再次克隆。
+已经位于 `~/nixos-config` 和 `~/dotfiles`，无需再次克隆。GitHub SSH 私钥也会由 sops-nix
+安装到 `~/.ssh/id_ed25519`，因此公钥添加到 GitHub 账户后即可直接使用 `git pull` 和
+`git push`。
 
 ## 简单验证
 

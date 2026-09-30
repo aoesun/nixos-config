@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-readonly NIXOS_REPOSITORY="https://github.com/aoesun/nixos-config.git"
+readonly NIXOS_REPOSITORY="git@github.com:aoesun/nixos-config.git"
 readonly DOTFILES_REPOSITORY="https://github.com/aoesun/dotfiles.git"
 readonly HOST="nixos"
 readonly TARGET_ROOT="/mnt"

@@ -38,5 +38,12 @@
     secrets."users/ryuk-password" = {
       neededForUsers = true;
     };
+
+    secrets."github/ssh-private-key" = {
+      owner = "ryuk";
+      group = "users";
+      mode = "0600";
+      path = "/home/ryuk/.ssh/id_ed25519";
+    };
   };
 }
