@@ -18,6 +18,11 @@ result-*
 id_rsa
 id_ed25519
 
+# Decrypted sops/age material; only armored *.age backups are committed.
+.secrets/
+secrets/*.plain.yaml
+secrets/key.txt
+
 # Editors and operating systems
 .vscode/
 .idea/

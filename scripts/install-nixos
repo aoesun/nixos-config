@@ -6,6 +6,8 @@ readonly NIXOS_REPOSITORY="https://github.com/aoesun/nixos-config.git"
 readonly DOTFILES_REPOSITORY="https://github.com/aoesun/dotfiles.git"
 readonly HOST="nixos"
 readonly TARGET_ROOT="/mnt"
+readonly ENCRYPTED_AGE_KEY="secrets/age-key.txt.age"
+readonly SOPS_AGE_KEY="persist/var/lib/sops-nix/key.txt"
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -17,6 +19,10 @@ die() {
 [[ $EUID -eq 0 ]] || die "run this installer as root"
 [[ -d /sys/firmware/efi ]] || die "the installer was not booted in UEFI mode"
 [[ -f "$repo_root/flake.nix" ]] || die "cannot find flake.nix at $repo_root"
+[[ -f "$repo_root/$ENCRYPTED_AGE_KEY" ]] || \
+  die "missing $repo_root/$ENCRYPTED_AGE_KEY; run scripts/bootstrap-secrets first"
+[[ ! -e "$repo_root/.secrets/age-key.txt" ]] || \
+  die "plaintext .secrets/age-key.txt still exists; save it in Bitwarden and remove it first"
 
 export NIX_CONFIG=$'experimental-features = nix-command flakes\n'"${NIX_CONFIG:-}"
 
@@ -46,6 +52,14 @@ mountpoint -q "$TARGET_ROOT/persist" || die "$TARGET_ROOT/persist was not mounte
 
 install -d -m 0755 "$TARGET_ROOT/home/ryuk"
 
+printf '\nDecrypting the sops age identity for the installed system...\n'
+install -d -m 0700 "$TARGET_ROOT/$(dirname "$SOPS_AGE_KEY")"
+nix shell nixpkgs#age --command \
+  age --decrypt \
+    --output "$TARGET_ROOT/$SOPS_AGE_KEY" \
+    "$repo_root/$ENCRYPTED_AGE_KEY"
+chmod 0600 "$TARGET_ROOT/$SOPS_AGE_KEY"
+
 printf '\nCloning the editable dotfiles working tree...\n'
 git clone "$DOTFILES_REPOSITORY" "$TARGET_ROOT/home/ryuk/dotfiles"
 
@@ -64,5 +78,4 @@ nixos-enter --root "$TARGET_ROOT" --command \
   'chown -R ryuk:users /home/ryuk/dotfiles /home/ryuk/nixos-config'
 
 printf '\nInstallation completed successfully.\n'
-printf 'Disconnect the ISO, reboot, log in as ryuk with the temporary password, '
-printf 'and immediately run passwd.\n'
+printf 'Disconnect the ISO, reboot, and log in as ryuk with the password stored in sops.\n'

@@ -89,7 +89,36 @@ cp /tmp/nixos-hardware/etc/nixos/hardware-configuration.nix \
 `hardware-configuration.nix` 已被 Git 追踪，所以无需 `git add` 就会参与本地 Flake 构建。
 Disko 单独负责文件系统和 swap 定义。
 
-## 4. 安装
+## 4. 初始化密钥（每套配置只执行一次）
+
+第一次使用这套配置安装前，在可信系统中运行：
+
+```bash
+./scripts/bootstrap-secrets
+```
+
+脚本会依次要求设置 age 私钥备份口令和 `ryuk` 的登录密码，并生成可提交的
+`secrets/age-key.txt.age`、`secrets/secrets.yaml` 以及含公开接收者的 `.sops.yaml`。
+将 `.secrets/age-key.txt` 保存到 Bitwarden，验证备份后删除该明文文件，再提交并推送加密文件。
+以后重装不再执行此步骤。
+
+删除明文私钥前，可以在不显示密码哈希的情况下确认登录密码：
+
+```bash
+./scripts/verify-login-password
+```
+
+需要从 Bitwarden 或 Git 口令备份恢复 age 私钥时，运行交互式恢复脚本：
+
+```bash
+./scripts/restore-age-key
+```
+
+脚本会先用恢复出的私钥试解 `secrets/secrets.yaml`，验证成功后才将其安装到当前系统、
+`/mnt` 安装目标、Git 忽略的 `secrets/key.txt` 或指定的绝对路径。sops-nix 的系统密钥
+路径仍固定为 `/persist/var/lib/sops-nix/key.txt`。
+
+## 5. 安装
 
 脚本会从配置求值目标磁盘、显示 `lsblk` 信息，并要求输入完整设备路径后才会清盘：
 
@@ -102,10 +131,11 @@ Disko 单独负责文件系统和 swap 定义。
 1. 清空并格式化 `/dev/sda`；
 2. 创建并挂载 Btrfs 子卷；
 3. 创建只读 `root-blank` 快照；
-4. 克隆可直接编辑的 `dotfiles` 工作仓库；
-5. 将本次实际使用的 NixOS 配置工作树复制到新系统；
-6. 构建并安装 NixOS；
-7. 修正两个工作仓库的所有权并安装 systemd-boot。
+4. 提示输入 age 私钥备份口令，并将私钥直接解密到新系统的 `/persist`；
+5. 克隆可直接编辑的 `dotfiles` 工作仓库；
+6. 将本次实际使用的 NixOS 配置工作树复制到新系统；
+7. 由 sops-nix 解密用户密码哈希并安装 NixOS；
+8. 修正两个工作仓库的所有权并安装 systemd-boot。
 
 看到 `Installation completed successfully.` 后重启：
 
@@ -115,23 +145,17 @@ reboot
 
 断开安装 ISO，让虚拟机从硬盘启动。
 
-## 5. 首次登录
+## 6. 首次登录
 
 使用以下账户登录：
 
 ```text
 Username: ryuk
-Password: admin
+Password: bootstrap-secrets 中设置的密码
 ```
 
-立即修改临时密码：
-
-```bash
-passwd
-```
-
-`/etc/shadow` 已由 Impermanence 持久化，因此新密码会跨重启保留。两个工作仓库已经位于
-`~/nixos-config` 和 `~/dotfiles`，无需再次克隆。
+用户数据库会在每次激活时由 NixOS 声明式生成，密码哈希由 sops-nix 提供。两个工作仓库
+已经位于 `~/nixos-config` 和 `~/dotfiles`，无需再次克隆。
 
 ## 简单验证
 
@@ -162,4 +186,5 @@ sudo reboot
 - 如果安装失败并决定从头重来，重新从 UEFI 模式的 ISO 启动并再次执行脚本即可。
 - 脚本采用 `disko.devices.disk.system.device` 声明的设备。更换磁盘路径时必须先修改并检查
   `hosts/nixos/disko-config.nix`，不能只在命令行临时替换。
-- 初始密码 `admin` 只用于首次登录。系统安装完成后必须立即运行 `passwd` 修改密码。
+- `users.mutableUsers = false`，因此 `passwd` 的修改不会作为配置来源保留；需要更换登录密码时，
+  应编辑 `secrets/secrets.yaml` 中的哈希并重新部署。

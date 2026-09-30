@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+readonly BITWARDEN_NOTE="NixOS SOPS age private key"
+readonly SYSTEM_KEY_PATH="/persist/var/lib/sops-nix/key.txt"
+readonly INSTALL_KEY_PATH="/mnt/persist/var/lib/sops-nix/key.txt"
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+encrypted_key="$repo_root/secrets/age-key.txt.age"
+sops_file="$repo_root/secrets/secrets.yaml"
+temporary_key="$(mktemp)"
+
+cleanup() {
+  rm -f -- "$temporary_key"
+}
+trap cleanup EXIT
+chmod 0600 "$temporary_key"
+
+die() {
+  printf 'error: %s\n' "$*" >&2
+  exit 1
+}
+
+run_bw() {
+  if command -v bw >/dev/null 2>&1; then
+    bw "$@"
+  else
+    nix shell nixpkgs#bitwarden-cli --command bw "$@"
+  fi
+}
+
+printf 'Restore the sops age identity from:\n'
+printf '  1) Bitwarden secure note\n'
+printf '  2) Passphrase-encrypted Git backup\n'
+read -r -p 'Source [1-2]: ' source_choice
+
+case "$source_choice" in
+  1)
+    [[ -n "${BW_SESSION:-}" ]] || \
+      die 'BW_SESSION is not set; run export BW_SESSION="$(bw unlock --raw)" first'
+    printf 'Reading the private key from Bitwarden...\n'
+    run_bw get notes "$BITWARDEN_NOTE" >"$temporary_key"
+    ;;
+  2)
+    [[ -f "$encrypted_key" ]] || die "missing $encrypted_key"
+    printf 'Decrypting the Git backup...\n'
+    nix shell nixpkgs#age --command \
+      age --decrypt "$encrypted_key" >"$temporary_key"
+    ;;
+  *)
+    die 'invalid source selection'
+    ;;
+esac
+
+if ! grep -q '^AGE-SECRET-KEY-' "$temporary_key"; then
+  die 'the restored content is not an age identity file'
+fi
+
+[[ -f "$sops_file" ]] || die "missing $sops_file"
+printf 'Verifying the restored identity against the sops file...\n'
+SOPS_AGE_KEY_FILE="$temporary_key" \
+  nix shell nixpkgs#sops --command \
+    sops --decrypt "$sops_file" >/dev/null
+
+printf '\nSave the verified identity to:\n'
+printf '  1) Current system (%s)\n' "$SYSTEM_KEY_PATH"
+printf '  2) Installation target (%s)\n' "$INSTALL_KEY_PATH"
+printf '  3) Repository secrets directory (%s/secrets/key.txt)\n' "$repo_root"
+printf '  4) Custom path\n'
+read -r -p 'Destination [1-4]: ' destination_choice
+
+case "$destination_choice" in
+  1)
+    destination="$SYSTEM_KEY_PATH"
+    privileged=true
+    ;;
+  2)
+    destination="$INSTALL_KEY_PATH"
+    privileged=true
+    ;;
+  3)
+    destination="$repo_root/secrets/key.txt"
+    privileged=false
+    ;;
+  4)
+    read -r -p 'Absolute destination path: ' destination
+    [[ "$destination" == /* ]] || die 'the custom destination must be absolute'
+    privileged=false
+    ;;
+  *)
+    die 'invalid destination selection'
+    ;;
+esac
+
+if [[ -e "$destination" ]]; then
+  read -r -p "$destination already exists; type yes to replace it: " replace_confirmation
+  [[ "$replace_confirmation" == yes ]] || die 'existing destination was left unchanged'
+fi
+
+if [[ "$privileged" == true && $EUID -ne 0 ]]; then
+  sudo install -D -m 0600 -o root -g root "$temporary_key" "$destination"
+elif [[ "$privileged" == true ]]; then
+  install -D -m 0600 -o root -g root "$temporary_key" "$destination"
+else
+  install -D -m 0600 "$temporary_key" "$destination"
+fi
+
+printf 'The verified age identity was installed at %s.\n' "$destination"

@@ -223,4 +223,5 @@ nix run home-manager/release-26.05 -- switch --flake .#ryuk-tools
 - Neovim Lua 配置
 - Rime 静态用户补丁
 
-不要提交明文密码、Token、Cookie、私钥或应用认证文件。如需声明式管理密钥，应使用 `sops-nix` 或 `agenix` 等加密方案。
+不要提交明文密码、Token、Cookie、私钥或应用认证文件。系统 secret 使用 sops-nix 管理；
+age 私钥的明文只用于写入 Bitwarden，Git 仅保存其口令加密备份和 sops 密文。

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   imports = [
     ./impermanence.nix
@@ -16,16 +16,27 @@
   # Expose completion definitions for shells managed by Home Manager.
   environment.pathsToLink = [ "/share/zsh" ];
 
+  # Recreate the account database declaratively on every activation. The
+  # password hash is decrypted by sops-nix before users are configured.
+  users.mutableUsers = false;
+
   users.users.ryuk = {
     isNormalUser = true;
     description = "Ryuk";
-    # Temporary bootstrap password. It must be changed with `passwd`
-    # immediately after the system installation is complete.
-    initialPassword = "admin";
+    hashedPasswordFile = config.sops.secrets."users/ryuk-password".path;
     extraGroups = [
       "networkmanager"
       "wheel"
     ];
     shell = pkgs.zsh;
+  };
+
+  sops = {
+    defaultSopsFile = ../../secrets/secrets.yaml;
+    age.keyFile = "/persist/var/lib/sops-nix/key.txt";
+
+    secrets."users/ryuk-password" = {
+      neededForUsers = true;
+    };
   };
 }
