@@ -23,7 +23,13 @@
       enable = true;
       enableZshIntegration = true;
     };
-    git.enable = true;
+    git = {
+      enable = true;
+      settings.user = {
+        name = "aoesun";
+        email = "37470931+aoesun@users.noreply.github.com";
+      };
+    };
     lazygit = {
       enable = true;
       settings.notARepository = "skip";
