@@ -47,6 +47,7 @@
 
   outputs =
     {
+      self,
       nixpkgs,
       home-manager,
       noctalia,
@@ -60,10 +61,19 @@
     }:
     let
       system = "x86_64-linux";
+      username = "ryuk";
+
+      # Shared by NixOS (and Home Manager through useGlobalPkgs) and the
+      # standalone outputs, so a profile evaluates the same way everywhere.
+      nixpkgsConfig.allowUnfreePredicate =
+        pkg:
+        builtins.elem (nixpkgs.lib.getName pkg) [
+          "spotify"
+        ];
 
       pkgs = import nixpkgs {
         inherit system;
-        config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "spotify";
+        config = nixpkgsConfig;
       };
 
       mkSystem =
@@ -72,10 +82,11 @@
           inherit system;
           specialArgs = {
             nixpkgsInput = nixpkgs;
-            inherit noctalia silentSDDM;
+            inherit noctalia silentSDDM username;
             rimeIce = rime-ice;
           };
           modules = [
+            { nixpkgs.config = nixpkgsConfig; }
             home-manager.nixosModules.home-manager
             disko.nixosModules.disko
             # Loading the module only declares persistence options. Nothing is
@@ -91,7 +102,7 @@
         home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
           modules = [
-            ./home/users/ryuk.nix
+            ./home/users/${username}.nix
             profile
           ];
         };
@@ -118,6 +129,23 @@
       # Custom packages are exported for explicit installation with `nix profile`.
       packages.${system} = import ./packages {
         inherit pkgs spicetify-nix;
+      };
+
+      formatter.${system} = pkgs.nixfmt-tree.override {
+        settings.formatter.nixfmt.excludes = [ "hosts/*/hardware-configuration.nix" ];
+      };
+
+      # `nix flake check` builds these; `just check` only evaluates them.
+      checks.${system} = {
+        home-ryuk = self.homeConfigurations.ryuk.activationPackage;
+        home-ryuk-tools = self.homeConfigurations."ryuk-tools".activationPackage;
+
+        # hardware-configuration.nix is generated and kept verbatim.
+        nixfmt = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
+          find ${self} -name '*.nix' ! -name hardware-configuration.nix -print0 \
+            | xargs -0 nixfmt --check
+          touch $out
+        '';
       };
     };
 }

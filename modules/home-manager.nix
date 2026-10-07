@@ -2,6 +2,7 @@
   config,
   lib,
   noctalia,
+  username,
   ...
 }:
 {
@@ -10,8 +11,8 @@
     useUserPackages = true;
     backupFileExtension = "hm-backup";
     sharedModules = [ noctalia.homeModules.default ];
-    users.ryuk.imports = [
-      ../home/users/ryuk.nix
+    users.${username}.imports = [
+      ../home/users/${username}.nix
       ../home/profiles/default.nix
     ]
     ++ lib.optional (builtins.elem config.desktop.session [

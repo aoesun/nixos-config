@@ -1,8 +1,7 @@
 { config, ... }:
-let
-  dotfiles = "${config.home.homeDirectory}/dotfiles";
-in
 {
+  imports = [ ../modules/dotfiles.nix ];
+
   programs.noctalia = {
     enable = true;
 
@@ -12,12 +11,8 @@ in
 
   # Keep frequently edited shell settings outside the Nix store. Noctalia
   # hot-reloads this file and writes temporary GUI overrides to XDG state.
-  xdg.configFile."noctalia/config.toml" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${dotfiles}/noctalia/config.toml";
-  };
+  xdg.configFile."noctalia/config.toml".source = config.lib.dotfiles.link "noctalia/config.toml";
 
   # Keep compositor configuration editable without rebuilding.
-  xdg.configFile."niri/config.kdl" = {
-    source = config.lib.file.mkOutOfStoreSymlink "${dotfiles}/niri/config.kdl";
-  };
+  xdg.configFile."niri/config.kdl".source = config.lib.dotfiles.link "niri/config.kdl";
 }

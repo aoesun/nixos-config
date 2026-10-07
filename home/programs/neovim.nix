@@ -14,6 +14,8 @@ let
   );
 in
 {
+  imports = [ ../modules/dotfiles.nix ];
+
   programs.neovim = {
     enable = true;
     defaultEditor = true;
@@ -21,7 +23,7 @@ in
     vimAlias = true;
 
     initLua = ''
-      dofile("${config.home.homeDirectory}/dotfiles/nvim/init.lua")
+      dofile("${config.dotfiles.path}/nvim/init.lua")
     '';
 
     extraPackages = with pkgs; [
@@ -38,6 +40,5 @@ in
 
   # Keep frequently edited Lua in the dotfiles repository while Home Manager
   # remains responsible for Neovim and all of its runtime dependencies.
-  xdg.configFile."nvim/lua".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/nvim/lua";
+  xdg.configFile."nvim/lua".source = config.lib.dotfiles.link "nvim/lua";
 }

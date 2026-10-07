@@ -1,15 +1,16 @@
-{ config, ... }:
+{ config, lib, ... }:
 let
-  rimeDirectory = "${config.home.homeDirectory}/dotfiles/rime";
-  link = name: {
-    source = config.lib.file.mkOutOfStoreSymlink "${rimeDirectory}/${name}";
-  };
+  patches = [
+    "default.custom.yaml"
+    "double_pinyin.custom.yaml"
+    "melt_eng.custom.yaml"
+    "radical_pinyin.custom.yaml"
+  ];
 in
 {
-  xdg.dataFile = {
-    "fcitx5/rime/default.custom.yaml" = link "default.custom.yaml";
-    "fcitx5/rime/double_pinyin.custom.yaml" = link "double_pinyin.custom.yaml";
-    "fcitx5/rime/melt_eng.custom.yaml" = link "melt_eng.custom.yaml";
-    "fcitx5/rime/radical_pinyin.custom.yaml" = link "radical_pinyin.custom.yaml";
-  };
+  imports = [ ../modules/dotfiles.nix ];
+
+  xdg.dataFile = lib.genAttrs (map (name: "fcitx5/rime/${name}") patches) (target: {
+    source = config.lib.dotfiles.link "rime/${baseNameOf target}";
+  });
 }

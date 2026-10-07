@@ -10,6 +10,14 @@ default:
 check:
     nix flake check --no-build
 
+# Build every flake check: Home Manager profiles and Nix formatting.
+check-all:
+    nix flake check
+
+# Format all Nix files except generated hardware configurations.
+fmt:
+    nix fmt
+
 # Build the current NixOS system without activating it.
 build:
     nix build .#nixosConfigurations.nixos.config.system.build.toplevel -o result-system

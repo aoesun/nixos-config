@@ -1,6 +1,8 @@
 {
+  config,
   lib,
   pkgs,
+  username,
   ...
 }:
 {
@@ -25,7 +27,15 @@
   networking.hostName = "nixos";
 
   # Let `nh os` commands find this host's Flake without an explicit path.
-  programs.nh.flake = "/home/ryuk/nixos-config";
+  programs.nh.flake = "${config.users.users.${username}.home}/nixos-config";
+
+  # This host was installed with the Disko layout, whose root-blank snapshot
+  # lets modules/core/impermanence.nix reset / on every boot.
+  environment.persistence."/persist".enable = true;
+
+  # Periodic TRIM is a conservative default for SSD-backed physical and
+  # virtual disks.
+  services.fstrim.enable = true;
 
   # Prefer compressed RAM for routine memory pressure, then fall back to the
   # host's disk-backed swap. Keep this host-specific rather than imposing the

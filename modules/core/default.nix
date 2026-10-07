@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  username,
+  ...
+}:
 {
   imports = [
     ./impermanence.nix
@@ -20,10 +25,10 @@
   # password hash is decrypted by sops-nix before users are configured.
   users.mutableUsers = false;
 
-  users.users.ryuk = {
+  users.users.${username} = {
     isNormalUser = true;
     description = "Ryuk";
-    hashedPasswordFile = config.sops.secrets."users/ryuk-password".path;
+    hashedPasswordFile = config.sops.secrets."users/${username}-password".path;
     extraGroups = [
       "networkmanager"
       "wheel"
@@ -35,15 +40,15 @@
     defaultSopsFile = ../../secrets/secrets.yaml;
     age.keyFile = "/persist/var/lib/sops-nix/key.txt";
 
-    secrets."users/ryuk-password" = {
+    secrets."users/${username}-password" = {
       neededForUsers = true;
     };
 
     secrets."github/ssh-private-key" = {
-      owner = "ryuk";
+      owner = username;
       group = "users";
       mode = "0600";
-      path = "/home/ryuk/.ssh/id_ed25519";
+      path = "${config.users.users.${username}.home}/.ssh/id_ed25519";
     };
   };
 }

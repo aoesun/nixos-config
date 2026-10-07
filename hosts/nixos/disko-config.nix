@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, ... }:
 
 {
   # Disk layout for a single-disk 64 GiB VMware guest. Verify /dev/sda from the
@@ -36,6 +36,7 @@
 
           content = {
             type = "btrfs";
+            # modules/core/impermanence.nix finds the filesystem by this label.
             extraArgs = [
               "-f"
               "-L"
@@ -102,57 +103,4 @@
       };
     };
   };
-
-  # Importing this installation layout opts the host into Impermanence. The
-  # shared policy remains disabled on the current VM, where this file is not
-  # imported.
-  environment.persistence."/persist".enable = true;
-
-  # Restore the writable root subvolume from the read-only root-blank snapshot
-  # before it is mounted. Disko creates that snapshot immediately after it
-  # formats the target disk and before the installer populates /root.
-  boot.initrd.systemd.services.impermanence-root-rollback = {
-    description = "Restore the ephemeral Btrfs root subvolume";
-    requiredBy = [ "sysroot.mount" ];
-    before = [ "sysroot.mount" ];
-    requires = [ "dev-disk-by\\x2dlabel-nixos.device" ];
-    after = [ "dev-disk-by\\x2dlabel-nixos.device" ];
-    unitConfig.DefaultDependencies = "no";
-    path = [
-      pkgs.btrfs-progs
-      pkgs.coreutils
-      pkgs.util-linux
-    ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-    script = ''
-      mkdir -p /btrfs_tmp
-      mount -t btrfs -o subvolid=5 /dev/disk/by-label/nixos /btrfs_tmp
-
-      if ! btrfs subvolume show /btrfs_tmp/root-blank >/dev/null 2>&1; then
-        echo "Impermanence: missing Btrfs snapshot /root-blank" >&2
-        umount /btrfs_tmp
-        exit 1
-      fi
-
-      if btrfs subvolume show /btrfs_tmp/root >/dev/null 2>&1; then
-        btrfs subvolume delete --recursive /btrfs_tmp/root
-      fi
-
-      btrfs subvolume snapshot /btrfs_tmp/root-blank /btrfs_tmp/root
-      umount /btrfs_tmp
-    '';
-  };
-
-  # Impermanence prepares bind mounts during early boot. Both the persistence
-  # store and filesystems containing its mount targets must be available then.
-  fileSystems."/".neededForBoot = true;
-  fileSystems."/persist".neededForBoot = true;
-  fileSystems."/home".neededForBoot = true;
-
-  # Periodic TRIM is a conservative default for SSD-backed physical and
-  # virtual disks.
-  services.fstrim.enable = true;
 }
