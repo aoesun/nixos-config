@@ -18,9 +18,11 @@
 hosts/
 ├── nixos/
 │   ├── default.nix
+│   ├── disko-config.nix
 │   └── hardware-configuration.nix
 └── workstation/
     ├── default.nix
+    ├── disko-config.nix          # 可选：使用 Disko 声明磁盘时
     └── hardware-configuration.nix
 ```
 
@@ -88,18 +90,36 @@ cp /mnt/etc/nixos/hardware-configuration.nix \
 
   networking.hostName = "workstation";
 
+  # Choose the desktop session(s) offered by SDDM.
+  desktop.session = "niri";
+
   # Use the NixOS release of this machine's initial installation.
   system.stateVersion = "26.05";
 }
 ```
 
-不要导入 `modules/virtualization/vmware-guest.nix`。如果实体机需要专用显卡、蓝牙、电源管理、
+不要导入 `modules/virtualization/vmware-guest.nix`。当前 VM 用于 SDDM 的 Xorg 变通只属于
+`hosts/nixos`，实体机应先测试默认的 Wayland SDDM。如果实体机需要专用显卡、蓝牙、电源管理、
 固件或 CPU 微码设置，可以新增实体机专用模块，或直接在这个入口中声明后再逐步
 拆分。
 
 `system.stateVersion` 应记录这台实体机首次安装时采用的 NixOS 兼容版本。以后更新
 nixpkgs 时不要顺手修改它。如果未来从比 26.05 更新的安装介质首次安装，应使用
 该版本建议的初始值，而不是机械复制示例。
+
+## 磁盘、impermanence 与密钥
+
+- **Disko（推荐）**：复制并调整 `hosts/nixos/disko-config.nix` 为本机布局，在入口中导入，
+  并用 `nixos-generate-config --no-filesystems` 生成硬件配置。保留 Btrfs label `nixos`
+  与 `postCreateHook` 中的 `root-blank` 快照，回滚服务依赖这两项。
+- **Impermanence**：只有磁盘提供了 `root-blank` 快照时才能启用。确认后在入口中加入
+  `environment.persistence."/persist".enable = true;`，并保证 `/persist` 与 `/home`
+  为独立子卷。手工分区的机器不要启用。
+- **sops 密钥**：系统从 `/persist/var/lib/sops-nix/key.txt` 读取 age 私钥，安装前需把它放到
+  `/mnt/persist/var/lib/sops-nix/key.txt`（`./scripts/restore-age-key` 可选择安装目标）。
+  没有 `/persist` 子卷时，需要同时调整 `modules/core/default.nix` 中的 `sops.age.keyFile`。
+- `scripts/install-nixos` 当前固定安装 `nixos` 输出；实体机用 `nixos-install --flake`
+  手动安装，或先把脚本中的 `HOST` 改为参数。
 
 ## 添加 flake 输出
 
@@ -173,7 +193,7 @@ sudo nixos-rebuild switch --flake ~/nixos-config#workstation
 - `hostnamectl` 显示实体机主机名而不是 `nixos`。
 - `findmnt` 中所有挂载点和 Btrfs 子卷正确。
 - systemd-boot 能正常启动并显示合理的回滚条目。
-- NetworkManager、Plasma Wayland、Fcitx5 和 Rime 正常。
+- NetworkManager、所选桌面会话、Fcitx5 和 Rime 正常。
 - 实体机没有启动 VMware Guest 服务。
 - `ryuk` 可以使用 sudo，但 SSH 仍禁止 root 登录。
 - GitHub SSH 私钥只存在于实体机用户目录，未进入 Git 仓库或 Nix Store。

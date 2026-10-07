@@ -1,158 +1,93 @@
-# 日常维护与部署
+# 日常维护
 
-## 工作目录
+配置仓库位于 `~/nixos-config`，可编辑的原生配置位于 `~/dotfiles`。不要再编辑
+`/etc/nixos`。
 
-正式配置仓库位于：
+## 命令入口
 
-```text
-/home/ryuk/nixos-config
-```
-
-日常修改应只在该仓库中进行。原 `/etc/nixos` 若仍保留，应视为旧备份，不要同时编辑两份配置。
-
-## 修改流程
-
-推荐每次修改遵循以下顺序：
-
-1. 在 `~/nixos-config` 编辑 Nix 文件。
-2. 更新对应的 `docs/` 文档。
-3. 查看 Git diff，确认没有意外文件或敏感信息。
-4. 对 flake 做求值检查。
-5. 构建并切换系统。
-6. 验证功能正常。
-7. 使用 Git 提交并推送。
-
-## Just 命令入口
-
-仓库根目录的 `justfile` 为常用 Nix 操作提供可发现的短命令。`just` 由 Home Manager
-的 tools profile 安装；在仓库根目录或任意子目录运行以下命令可查看完整列表：
-
-```bash
-just
-```
-
-当前 recipe 与底层命令的对应关系：
+在仓库内运行 `just` 查看全部 recipe。常用：
 
 | Recipe | 用途 |
 | --- | --- |
-| `just check` | 求值并检查全部 flake 输出 |
-| `just build` | 构建当前 NixOS 系统，不激活 |
-| `just home` | 构建完整的 `ryuk` Home Manager profile |
-| `just home ryuk-tools` | 构建无 GUI 的 Home Manager profile |
-| `just diff` | 构建系统并与当前运行系统比较闭包 |
-| `just test` | 临时激活，不修改启动默认代际 |
-| `just switch` | 激活并设置为启动默认代际 |
-| `just update` | 更新所有 flake inputs |
-| `just update-input home-manager` | 只更新指定 input |
-| `just history` | 查看系统代际历史 |
-| `just clean` | 删除超过 7 天的旧世代并回收不可达 Store 路径 |
-| `just clean-all` | 删除所有非当前世代并回收不可达 Store 路径 |
-| `just software list` | 列出仓库提供的可安装软件 |
-| `just software goldendict-ng` | 构建并安装 GoldenDict-ng 到用户 profile |
-| `just software spotify` | 构建并安装自定义 Spotify 到用户 profile |
+| `just check` | 求值全部 flake 输出，不构建（每次修改后的最低验证） |
+| `just check-all` | 构建全部 checks：两个 HM profile 与 Nix 格式检查 |
+| `just fmt` | 用 nixfmt 格式化 Nix 文件（跳过生成的硬件配置） |
+| `just build` / `just diff` | 构建系统到 `result-system` / 并与当前系统比较闭包 |
+| `just home [ryuk-tools]` | 构建 standalone HM profile |
+| `just test` | 临时激活，重启后回到原默认世代 |
+| `just switch` / `just boot` | 激活并设为默认 / 只设为下次启动默认 |
+| `just update` / `just update-input <name>` | 更新全部 / 单个 flake 输入 |
+| `just history` | 查看系统世代 |
+| `just clean` / `just clean-all` | 删除 7 天前 / 全部非当前世代并回收 Store |
+| `just software list` | 列出独立安装的软件包（`goldendict-ng`、`spotify`） |
 
-这些 recipe 保留了 `test`、`switch`、`update` 等 Nix 原有术语，执行时也会显示底层
-命令。涉及系统激活和清理系统世代的 recipe 仍会正常请求 sudo 密码。`clean` 使用
-与定时垃圾回收相同的 7 天期限：先清理当前用户 profile，再清理 NixOS system
-profile，最后只回收不再被任何 GC root 引用的 Store 路径。`clean-all` 执行相同步骤，
-但删除所有非当前世代，会失去回滚到它们的能力。
+`packages/` 中的软件不会随 rebuild 安装，需要 `just software <name>`。
 
-## 检查配置
+## 修改流程
 
-在仓库目录执行：
+1. 编辑 Nix 文件；新增的 `.nix` 文件先 `git add`，否则 flake 看不到。
+2. 如改动了结构、流程或约定，同步更新 `docs/`。
+3. `just fmt`、`just check`，必要时 `just diff` 查看闭包变化。
+4. `just test` 验证，再 `just switch`。
+5. 审阅 diff 后提交。
 
-```bash
-nix flake check --no-build
-```
+## 修改 dotfiles
 
-该命令检查 flake 输出能否求值，但不构建完整系统。它适合在提交前快速发现语法错误、缺少模块和不存在的软件包属性。
+已链接文件保存即生效，不需要 rebuild：
 
-## 应用配置
+- niri：修改后运行 `niri validate`，niri 自动重载。
+- Noctalia：热重载 `config.toml`。
+- Rime：在 Fcitx5 菜单执行“重新部署”。若缓存未更新，可备份后清理 Rime 的
+  `build/`，不要删除用户词库和同步目录。
+- Neovim：重启 Neovim。使用新插件前先把它加入 `home/programs/neovim.nix`。
 
-```bash
-sudo nixos-rebuild switch --flake ~/nixos-config
-```
+新增需要部署到其他位置的文件时，才需要在 Nix 中用 `config.lib.dotfiles.link` 增加链接
+并 rebuild。`nvim/lua/` 和 `navi/` 是整个目录链接，其中新增文件无需改 Nix。
 
-`switch` 会构建新系统、设置为默认启动代际，并立即激活可以在线切换的服务和用户环境。Home Manager 已集成到 NixOS，因此无需再单独执行 `home-manager switch`。
-
-当前 flake 只有 `nixos` 一个输出，也可以显式指定：
+## 更新软件与内核
 
 ```bash
-sudo nixos-rebuild switch --flake ~/nixos-config#nixos
+git status                    # 最好从干净工作区开始
+just update                   # 只修改 flake.lock
+git diff -- flake.lock        # 确认输入仍指向预期分支
+just check && just diff       # 重点看内核、systemd、显卡/VMware、桌面组件
+just test                     # 观察服务、网络与桌面
+just switch
 ```
 
-增加实体机输出后，建议始终写明 `#主机输出名`，避免对错误机器应用配置。
-
-## 测试而不设为默认启动项
-
-```bash
-sudo nixos-rebuild test --flake ~/nixos-config
-```
-
-`test` 会激活配置，但不把它设为下次启动的默认代际。它适合测试可能影响网络、SSH 或桌面的改动；重启后会回到先前默认配置。
-
-## 更新依赖
-
-更新全部 flake 输入：
-
-```bash
-nix flake update
-```
-
-更新后应审阅 `flake.lock` 的差异，再运行检查和重建。不要因为更新 nixpkgs 就修改 `system.stateVersion` 或 `home.stateVersion`。
-
-完整的更新前检查、版本比较、内核重启和故障回滚流程见
-[更新软件与内核](updating.md)。
+内核、initrd、内核模块或 systemd/glibc 有重要变化时需要重启，并用 `uname -r` 确认。
+验证 `systemctl --failed` 与 `journalctl -b -p err` 后提交 `flake.lock`。
+建议每一到四周小步更新一次。
 
 ## 回滚
-
-若刚切换的配置有问题，可以回滚到上一个系统代际：
 
 ```bash
 sudo nixos-rebuild switch --rollback
 ```
 
-也可以重启，在 systemd-boot 菜单中选择近期旧代际。启动菜单最多保留 5 项，并且系统每周清理超过 7 天的旧世代和不可达路径，因此 Git 历史仍是长期追踪配置变化的主要依据。
+或在 systemd-boot 菜单中选择旧世代（最多保留 5 项）。回滚后若问题来自依赖更新，用
+`git restore flake.lock`（未提交时）或 `git revert`（已提交时）恢复锁文件，避免下次
+重建再次选中问题版本。
 
-## Git 与 LazyGit
+## 在其他发行版使用用户环境
 
-远端仓库为私有 GitHub 仓库，`origin` 使用 SSH：
+安装 Nix 并启用 flakes，先克隆两个仓库到固定位置：
 
-```text
-git@github.com:aoesun/nixos-config.git
+```bash
+git clone https://github.com/aoesun/dotfiles ~/dotfiles
+git clone https://github.com/aoesun/nixos-config ~/nixos-config
+cd ~/nixos-config
+nix run home-manager/release-26.05 -- switch --flake .#ryuk        # 或 .#ryuk-tools
 ```
 
-LazyGit 常用键：
+standalone HM 不创建系统用户、不修改 `/etc/shells`，也不安装桌面和输入法框架：宿主需
+自备 `ryuk` 用户、Zsh 登录 Shell，以及图形会话和 Fcitx5 Rime（若使用 GUI profile）。
+首次激活若目标路径已有普通文件，先迁移，避免与 HM 链接冲突。
 
-- `Space`：暂存或取消暂存当前文件。
-- `a`：暂存或取消暂存全部文件。
-- `c`：创建提交。
-- `p`：拉取。
-- `P`：推送。
-- `?`：显示当前面板帮助。
+## 手动步骤
 
-提交前不要只看文件名，还应查看实际 diff。提交摘要使用祈使语气并说明目的；复杂变更可在 description 中解释原因和约束。
+以下设置无法声明式完成，新环境需手动处理：
 
-## 敏感信息
-
-不要提交以下内容：
-
-- 密码、API Token 和 Cookie。
-- SSH、age、PGP 等私钥。
-- `.env` 和应用登录状态。
-- Bitwarden 数据目录。
-- Codex 或 GitHub 的认证文件。
-
-`.gitignore` 只能防止常见误提交，不能替代提交前审阅。如果未来需要声明式密钥管理，可引入 `sops-nix` 或 `agenix`，只提交加密后的密文和允许公开的公钥。
-
-## 文档同步规则
-
-当配置发生以下变化时，应更新对应文档：
-
-- 修改 flake 输入或模块关系：更新 `architecture.md`。
-- 修改网络、用户、磁盘、启动、SSH 或虚拟化：更新 `system.md`。
-- 修改 Plasma、软件、字体或输入法：更新 `desktop-and-input.md`。
-- 修改用户程序和 shell：更新 `home-manager.md`。
-- 修改部署、更新或维护流程：更新本文件。
-- 修改软件和内核更新流程：更新 `updating.md`。
-- 修改实体机安装和新增主机流程：更新 `installing-physical-machine.md`。
+- Chromium 扩展的“允许在无痕模式下运行”：在 `chrome://extensions` 中逐个开启。
+  桌面入口默认以无痕模式启动，不开启则扩展不生效。
+- 新 GitHub SSH 公钥需添加到 GitHub 账户（私钥由 sops-nix 部署到 `~/.ssh/id_ed25519`）。

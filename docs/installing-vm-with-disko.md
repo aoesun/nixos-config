@@ -25,7 +25,8 @@ VMware 虚拟磁盘。安装脚本会检查 UEFI、要求再次确认目标磁�
 所有 Btrfs 子卷共享 `system` 分区的可用空间，并没有预先划分固定容量。`root` 是会被
 Impermanence 重置的系统根目录；`home`、`nix`、`persist` 和 `swap` 会长期保留。
 
-每次启动时，initrd 会删除可写的 `root` 子卷，再从只读 `root-blank` 创建新的根子卷。
+`hosts/nixos/default.nix` 显式启用了 impermanence：每次启动时，initrd 会删除可写的
+`root` 子卷，再从只读 `root-blank` 创建新的根子卷。
 需要跨重启保留的系统状态通过 `/persist` 管理，而整个 `/home` 当前作为独立子卷持久化。
 
 ## 安装前
@@ -91,47 +92,9 @@ Disko 单独负责文件系统和 swap 定义。
 
 ## 4. 初始化密钥（每套配置只执行一次）
 
-第一次使用这套配置安装前，在可信系统中运行：
-
-```bash
-./scripts/bootstrap-secrets
-```
-
-脚本会依次要求设置 age 私钥备份口令和 `ryuk` 的登录密码，并生成可提交的
-`secrets/age-key.txt.age`、`secrets/secrets.yaml` 以及含公开接收者的 `.sops.yaml`。
-将 `.secrets/age-key.txt` 保存到 Bitwarden，验证备份后删除该明文文件，再提交并推送加密文件。
-以后重装不再执行此步骤。
-
-删除明文私钥前，可以在不显示密码哈希的情况下确认登录密码：
-
-```bash
-./scripts/verify-login-password
-```
-
-需要从 Bitwarden 或 Git 口令备份恢复 age 私钥时，运行交互式恢复脚本：
-
-```bash
-./scripts/restore-age-key
-```
-
-脚本会先用恢复出的私钥试解 `secrets/secrets.yaml`，验证成功后才将其安装到当前系统、
-`/mnt` 安装目标、Git 忽略的 `.secrets/key.txt` 或指定的绝对路径。sops-nix 的系统密钥
-路径仍固定为 `/persist/var/lib/sops-nix/key.txt`。
-
-恢复 age 身份后，可以用通用脚本安全提取 GitHub SSH 私钥或以后添加的其他 secret：
-
-```bash
-./scripts/restore-sops-secret
-```
-
-脚本会自动查找 `/persist/var/lib/sops-nix/key.txt`、`.secrets/key.txt` 或
-`.secrets/age-key.txt`，在临时文件中解密并验证内容，再以注册的权限安装到目标路径。
-新增 secret 时，在脚本顶部的并行注册表数组中增加标签、SOPS 路径、默认目标和校验器即可；
-未注册的 secret 也可以通过 `Custom sops path` 临时提取。
-
-人工恢复出的明文统一保存在仓库的 `.secrets/` 目录；该目录整体被 Git 忽略。通用恢复脚本
-也可以将 secret 直接安装到注册的运行时路径或自定义绝对路径。目标已存在时，脚本先比较
-内容；SSH 私钥不同则显示安全的公钥指纹对比，不输出私钥正文，确认后才允许覆盖。
+第一次使用这套配置安装前，在可信系统中运行 `./scripts/bootstrap-secrets`，并按提示把
+age 私钥存入 Bitwarden、提交加密文件。以后重装不再执行此步骤；需要在安装环境中恢复
+age 私钥时使用 `./scripts/restore-age-key`。详见[密钥管理](secrets.md)。
 
 ## 5. 安装
 
@@ -203,5 +166,5 @@ sudo reboot
 - 如果安装失败并决定从头重来，重新从 UEFI 模式的 ISO 启动并再次执行脚本即可。
 - 脚本采用 `disko.devices.disk.system.device` 声明的设备。更换磁盘路径时必须先修改并检查
   `hosts/nixos/disko-config.nix`，不能只在命令行临时替换。
-- `users.mutableUsers = false`，因此 `passwd` 的修改不会作为配置来源保留；需要更换登录密码时，
-  应编辑 `secrets/secrets.yaml` 中的哈希并重新部署。
+- `users.mutableUsers = false`，因此 `passwd` 的修改不会保留；更换登录密码见
+  [密钥管理](secrets.md)。
