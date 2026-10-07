@@ -4,8 +4,14 @@
   pkgs,
   ...
 }:
+let
+  enabled = builtins.elem config.desktop.session [
+    "niri"
+    "both"
+  ];
+in
 {
-  config = lib.mkIf (builtins.elem config.desktop.session [ "niri" "both" ]) {
+  config = lib.mkIf enabled {
     programs.niri.enable = true;
 
     # Niri enables GNOME Keyring for its Secret portal. Keep the existing

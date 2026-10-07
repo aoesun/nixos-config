@@ -9,13 +9,16 @@
 let
   cfg = config.desktop;
 
-  plasmaWaylandSession = pkgs.runCommand "plasma-wayland-session" {
-    passthru.providedSessions = [ "plasma" ];
-  } ''
-    mkdir -p "$out/share/wayland-sessions"
-    ln -s ${pkgs.kdePackages.plasma-workspace.sessions}/share/wayland-sessions/plasma.desktop \
-      "$out/share/wayland-sessions/plasma.desktop"
-  '';
+  plasmaWaylandSession =
+    pkgs.runCommand "plasma-wayland-session"
+      {
+        passthru.providedSessions = [ "plasma" ];
+      }
+      ''
+        mkdir -p "$out/share/wayland-sessions"
+        ln -s ${pkgs.kdePackages.plasma-workspace.sessions}/share/wayland-sessions/plasma.desktop \
+          "$out/share/wayland-sessions/plasma.desktop"
+      '';
 in
 {
   imports = [
