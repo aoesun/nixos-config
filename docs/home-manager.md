@@ -37,7 +37,7 @@ nix run home-manager/release-26.05 -- switch --flake .#ryuk-tools
 模块，不维护第二套用户偏好。
 
 Home Manager 不负责在其他发行版安装完整桌面环境。宿主应先提供 KDE、GNOME、
-Niri 或其他可用图形会话；GUI profile 只安装 Chromium、Bitwarden、GoldenDict 等
+Niri 或其他可用图形会话；GUI profile 只安装 Chromium、Bitwarden 等
 桌面无关的个人应用。
 
 standalone Home Manager 也不创建系统用户或修改 `/etc/shells`。宿主应已有 `ryuk`
@@ -65,12 +65,14 @@ Yazi。两者均使用阻塞模式，外部程序运行期间 Yazi 不会继续�
 
 - Chromium，以及 Vimium 和 uBlock Origin Lite；
 - Bitwarden Desktop；
-- GoldenDict-ng；
 - Yazi 的 `wl-clipboard` 支持；
 - 从 `~/dotfiles/rime` 链接到 Fcitx5 Rime 用户目录的静态补丁。
 
 这些应用不要求特定桌面实现，但运行时需要宿主已有图形会话。浏览器资料、Cookie、
 Bitwarden 登录状态和其他运行数据不进入 Git。
+
+GoldenDict-ng 作为独立 flake 软件包通过 `just software goldendict-ng` 安装，不随
+GUI profile 自动部署。
 
 Rime 前端、rime-ice 基础数据、桌面会话集成和重新部署由宿主负责，因此这部分链接
 只有在宿主已经配置好 Rime 时才会生效。Rime 的 `build/`、用户词库和同步状态不由

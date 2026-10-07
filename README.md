@@ -76,7 +76,7 @@ Home Manager 管理：
 - Fastfetch
 - Navi 个人 cheats 的本地符号链接
 - Codex
-- Chromium、Vimium、uBlock Origin Lite、Bitwarden 和 GoldenDict（仅完整 profile）
+- Chromium、Vimium、uBlock Origin Lite 和 Bitwarden（仅完整 profile）
 - 来自 `~/dotfiles/rime` 的 Rime 用户补丁（仅完整 profile；输入法框架仍由宿主管理）
 
 ## Flake 输出
@@ -90,10 +90,12 @@ homeConfigurations.ryuk-tools
 homeModules.default
 homeModules.tools
 homeModules.gui
+packages.x86_64-linux.goldendict-ng
 packages.x86_64-linux.spotify-spiced
 ```
 
-`spotify-spiced` 是独立软件包输出，不会因为执行 `nixos-rebuild` 而自动安装或升级。
+`goldendict-ng` 和 `spotify-spiced` 是独立软件包输出，不会因为执行
+`nixos-rebuild` 而自动安装或升级。
 
 ## 检查与部署
 
@@ -149,7 +151,7 @@ sudo nixos-rebuild switch --flake .#nixos
 
 输出名与当前主机名相同，因此在本机也可以简写为 `--flake .`。
 
-## Spotify
+## 独立软件
 
 列出仓库提供的可安装软件：
 
@@ -157,15 +159,18 @@ sudo nixos-rebuild switch --flake .#nixos
 just software list
 ```
 
-构建并安装自定义 Spotify：
+构建并安装 GoldenDict-ng 或自定义 Spotify：
 
 ```bash
+just software goldendict-ng
 just software spotify
 ```
 
-模块命令也可以写成 `just software::list` 和 `just software::spotify`，这种形式支持
-shell 补全。具体 profile 名称以 `nix profile list` 的结果为准。通过 Spicetify
-Marketplace 手动安装的扩展属于用户运行时状态，不受本仓库声明式管理。
+模块命令也可以写成 `just software::list`、`just software::goldendict-ng` 和
+`just software::spotify`，这种形式支持 shell 补全。具体 profile 名称以
+`nix profile list` 的结果为准。GoldenDict-ng 的辞书和界面状态，以及通过
+Spicetify Marketplace 手动安装的扩展，都属于用户运行时状态，不受本仓库声明式
+管理。
 
 ## 更新输入
 

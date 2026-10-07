@@ -26,7 +26,9 @@ Home Manager 的 GUI profile 安装：
 
 - Bitwarden Desktop：密码管理客户端。
 - Chromium：网页浏览器。
-- GoldenDict-ng：支持多种离线辞书格式的 Qt6 词典查询工具。
+
+GoldenDict-ng 支持多种离线辞书格式，通过 `just software goldendict-ng` 独立安装
+到用户 profile，不随 Home Manager 自动部署。
 
 Chromium 通过 Home Manager 配置以下扩展：
 

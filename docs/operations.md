@@ -48,6 +48,7 @@ just
 | `just clean` | 删除超过 7 天的旧世代并回收不可达 Store 路径 |
 | `just clean-all` | 删除所有非当前世代并回收不可达 Store 路径 |
 | `just software list` | 列出仓库提供的可安装软件 |
+| `just software goldendict-ng` | 构建并安装 GoldenDict-ng 到用户 profile |
 | `just software spotify` | 构建并安装自定义 Spotify 到用户 profile |
 
 这些 recipe 保留了 `test`、`switch`、`update` 等 Nix 原有术语，执行时也会显示底层
