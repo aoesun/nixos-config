@@ -4,9 +4,9 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 list:
     @printf '%s\n' 'Available software:' '  goldendict-ng  Dictionary lookup application' '  spotify       Custom Spotify with Spicetify extensions' 'Coding agents from nixpkgs:' '  codex  claude-code  opencode  pi'
 
-# Build and install GoldenDict-ng in the user profile.
+# Install GoldenDict-ng from nixpkgs into the user profile.
 goldendict-ng:
-    nix profile install .#goldendict-ng
+    nix profile install nixpkgs#goldendict-ng
 
 # Build and install the custom Spotify package in the user profile.
 spotify:
