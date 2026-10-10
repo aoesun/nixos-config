@@ -6,16 +6,16 @@ list:
 
 # Install GoldenDict-ng from nixpkgs into the user profile.
 goldendict-ng:
-    nix profile install nixpkgs#goldendict-ng
+    nix profile add nixpkgs#goldendict-ng
 
 # Build and install the custom Spotify package in the user profile.
 spotify:
-    nix profile install .#spotify-spiced
+    nix profile add .#spotify-spiced
 
 # Install a coding agent from nixpkgs into the user profile.
 # unfree packages (e.g. claude-code) need the env var and --impure.
 _agent pkg:
-    NIXPKGS_ALLOW_UNFREE=1 nix profile install --impure "nixpkgs#{{pkg}}"
+    NIXPKGS_ALLOW_UNFREE=1 nix profile add --impure "nixpkgs#{{pkg}}"
 
 # Coding agents: one recipe per agent so that shell completion works.
 codex: (_agent "codex")
