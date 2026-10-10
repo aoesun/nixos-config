@@ -17,7 +17,6 @@
   ];
 
   programs = {
-    codex.enable = true;
     fastfetch.enable = true;
     fzf = {
       enable = true;
