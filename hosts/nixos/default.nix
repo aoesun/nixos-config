@@ -13,6 +13,7 @@
     ../../modules/desktop
     ../../modules/home-manager.nix
     ../../modules/virtualization/vmware-guest.nix
+    ../../modules/services/mihomo.nix
   ];
 
   boot.loader = {
