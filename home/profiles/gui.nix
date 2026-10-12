@@ -4,6 +4,7 @@
     ../modules/dotfiles.nix
     ../programs/chromium.nix
     ../programs/rime.nix
+    ../programs/mpv.nix
   ];
 
   home.packages = with pkgs; [
