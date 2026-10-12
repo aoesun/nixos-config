@@ -9,6 +9,7 @@
   home.packages = with pkgs; [
     bitwarden-desktop
     wl-clipboard
+    nautilus
   ];
 
   programs.ghostty.enable = true;
