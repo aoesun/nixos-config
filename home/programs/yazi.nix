@@ -1,32 +1,12 @@
-{ ... }:
+{ config, ... }:
 {
+  imports = [ ../modules/dotfiles.nix ];
+
   programs = {
     yazi = {
       enable = true;
       enableZshIntegration = true;
       shellWrapperName = "y";
-      settings.mgr = {
-        show_hidden = true;
-        sort_by = "natural";
-        sort_dir_first = true;
-        linemode = "size";
-      };
-
-      keymap.mgr.prepend_keymap = [
-        {
-          on = "!";
-          run = ''shell "$SHELL" --block'';
-          desc = "Open shell here";
-        }
-        {
-          on = [
-            "g"
-            "l"
-          ];
-          run = ''shell "lazygit" --block'';
-          desc = "Open LazyGit here";
-        }
-      ];
     };
 
     zoxide = {
@@ -34,4 +14,8 @@
       enableZshIntegration = true;
     };
   };
+
+  # Keep yazi's frequently edited config outside the Nix store.
+  xdg.configFile."yazi/yazi.toml".source = config.lib.dotfiles.link "yazi/yazi.toml";
+  xdg.configFile."yazi/keymap.toml".source = config.lib.dotfiles.link "yazi/keymap.toml";
 }
