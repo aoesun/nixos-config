@@ -68,8 +68,21 @@
     initContent = ''
       source ${pkgs.spaceship-prompt}/share/zsh/themes/spaceship.zsh-theme
 
-      bindkey '^[[C' forward-word
-      bindkey '^[OC' forward-word
+      # Keep autosuggestions from wrapping this widget, so $POSTDISPLAY stays intact.
+      ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(_right_arrow_smart)
+
+      # With a suggestion showing, accept one word; otherwise move one character.
+      # .forward-char is the builtin and bypasses the plugin's whole-line accept.
+      _right_arrow_smart() {
+        if [[ -n $POSTDISPLAY ]]; then
+          zle forward-word
+        else
+          zle .forward-char
+        fi
+      }
+      zle -N _right_arrow_smart
+      bindkey '^[[C' _right_arrow_smart
+      bindkey '^[OC' _right_arrow_smart
     '';
   };
 }
