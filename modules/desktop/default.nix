@@ -41,6 +41,11 @@ in
   config = {
     fonts.packages = [ pkgs.nerd-fonts.fira-code ];
 
+    programs.localsend = {
+      enable = true;
+      openFirewall = false;
+    };
+
     programs.silentSDDM = {
       enable = true;
       theme = "default";
