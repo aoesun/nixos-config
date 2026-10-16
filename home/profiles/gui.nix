@@ -12,6 +12,7 @@
     wl-clipboard
     nautilus
     loupe
+    fragments
   ];
 
   programs.ghostty.enable = true;
