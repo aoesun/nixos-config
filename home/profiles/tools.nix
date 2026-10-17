@@ -14,6 +14,7 @@
     just
     tree
     wget
+    yq-go
   ];
 
   programs = {
