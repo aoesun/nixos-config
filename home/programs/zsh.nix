@@ -68,6 +68,13 @@
     initContent = ''
       source ${pkgs.spaceship-prompt}/share/zsh/themes/spaceship.zsh-theme
 
+      # Load the module that provides the menuselect keymap before binding to it.
+      zmodload zsh/complist
+
+      # Turn the completion list into a menu navigable with the arrow keys.
+      zstyle ':completion:*' menu select
+      zstyle ':completion:*' list-colors ''${(s.:.)LS_COLORS}
+
       # Keep autosuggestions from wrapping this widget, so $POSTDISPLAY stays intact.
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(_right_arrow_smart)
 
