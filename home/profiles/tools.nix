@@ -15,6 +15,7 @@
     tree
     wget
     yq-go
+    systemctl-tui
   ];
 
   programs = {
