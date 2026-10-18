@@ -1,4 +1,4 @@
-{ pkgs, username, ... }:
+{ lib, pkgs, username, ... }:
 {
   services.mihomo = {
     enable = true;
@@ -6,4 +6,8 @@
     configFile = "/home/${username}/.config/mihomo/config.yaml";
     webui = pkgs.metacubexd;
   };
+
+  # Keep the unit installed but do not start it at boot. Start it on demand
+  # with systemctl-tui or Cockpit.
+  systemd.services.mihomo.wantedBy = lib.mkForce [ ];
 }
