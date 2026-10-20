@@ -39,7 +39,25 @@ in
   };
 
   config = {
-    fonts.packages = [ pkgs.nerd-fonts.fira-code ];
+    fonts = {
+      packages = with pkgs; [
+        # Keep Fira Code until Noctalia stops referencing it.
+        maple-mono.NF-CN
+        noto-fonts-cjk-sans
+        noto-fonts-color-emoji
+      ];
+
+      # Han characters resolve to Simplified Chinese glyphs first, so the
+      # en_US locale does not pick Japanese variants.
+      fontconfig.defaultFonts = {
+        monospace = [
+          "Maple Mono NF CN"
+          "Noto Sans Mono CJK SC"
+        ];
+        sansSerif = [ "Noto Sans CJK SC" ];
+        emoji = [ "Noto Color Emoji" ];
+      };
+    };
 
     programs.localsend = {
       enable = true;
