@@ -18,6 +18,10 @@
 
   programs.ghostty.enable = true;
 
+  # Open files from lazygit in Zed directly. xdg-open falls back to the
+  # browser when no default handler is registered for a MIME type.
+  programs.lazygit.settings.os.open = "zeditor {{filename}}";
+
   gtk = {
     enable = true;
     iconTheme = {
