@@ -16,6 +16,10 @@ in
 
     services.gvfs.enable = true;
 
+    # Route xdg-open through the OpenURI portal instead of its own
+    # desktop-environment guessing.
+    xdg.portal.xdgOpenUsePortal = true;
+
     # Niri enables GNOME Keyring for its Secret portal. Keep the existing
     # OpenSSH agent instead of also starting GCR's competing SSH agent.
     services.gnome.gcr-ssh-agent.enable = false;
