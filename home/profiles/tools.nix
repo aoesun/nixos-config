@@ -12,6 +12,7 @@
     gh
     jq
     just
+    luvus
     tree
     wget
     yq-go

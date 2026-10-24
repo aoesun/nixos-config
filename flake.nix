@@ -39,6 +39,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    luvus = {
+      url = "github:RizRiyz/luvus";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     rime-ice = {
       url = "github:iDvel/rime-ice";
       flake = false;
@@ -57,6 +62,7 @@
       sops-nix,
       spicetify-nix,
       rime-ice,
+      luvus,
       ...
     }:
     let
@@ -71,9 +77,16 @@
           "spotify"
         ];
 
+      # Expose the upstream flake package as pkgs.luvus so every Home Manager
+      # entry point can reference it without extra specialArgs.
+      luvusOverlay = _final: _prev: {
+        luvus = luvus.packages.${system}.default;
+      };
+
       pkgs = import nixpkgs {
         inherit system;
         config = nixpkgsConfig;
+        overlays = [ luvusOverlay ];
       };
 
       mkSystem =
@@ -86,7 +99,10 @@
             rimeIce = rime-ice;
           };
           modules = [
-            { nixpkgs.config = nixpkgsConfig; }
+            {
+              nixpkgs.config = nixpkgsConfig;
+              nixpkgs.overlays = [ luvusOverlay ];
+            }
             home-manager.nixosModules.home-manager
             disko.nixosModules.disko
             # Loading the module only declares persistence options. Nothing is
