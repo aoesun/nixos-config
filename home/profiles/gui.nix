@@ -11,6 +11,7 @@
     bitwarden-desktop
     wl-clipboard
     nautilus
+    zed-editor
     loupe
     fragments
   ];
