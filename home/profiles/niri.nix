@@ -2,10 +2,10 @@
 {
   imports = [ ../modules/dotfiles.nix ];
 
-  # nirius stays installed, but its scratchpad integration is disabled in
-  # dotfiles/niri/config.kdl for now: every stashed window creates another
-  # workspace, which breaks the seamless cycling in focus-workspace-cycle.
-  # Note that nixpkgs stable ships 0.7.1, which lacks list-scratchpad.
+  # Provides the scratchpad that niri lacks; dotfiles/niri/config.kdl starts
+  # niriusd and binds Mod+Grave / Mod+Shift+Grave to it. Each stashed window
+  # creates another workspace, so the config uses niri's native workspace
+  # switching until focus-workspace-cycle learns to skip those workspaces.
   home.packages = [ pkgs.nirius ];
 
   programs.noctalia = {
