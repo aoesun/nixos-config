@@ -3,9 +3,7 @@
   imports = [ ../modules/dotfiles.nix ];
 
   # Provides the scratchpad that niri lacks; dotfiles/niri/config.kdl starts
-  # niriusd and binds Mod+Grave / Mod+Shift+Grave to it. Each stashed window
-  # creates another workspace, so the config uses niri's native workspace
-  # switching until focus-workspace-cycle learns to skip those workspaces.
+  # niriusd and binds Mod+Grave / Mod+Shift+Grave to it.
   home.packages = [ pkgs.nirius ];
 
   programs.noctalia = {
