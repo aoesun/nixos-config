@@ -40,6 +40,17 @@ in
           # run and fire on every boot.
           "/var/lib/systemd/timers"
 
+          # NetworkManager's secret_key seeds stable-privacy IPv6 addresses
+          # and other per-host identifiers; keep them stable across boots.
+          "/var/lib/NetworkManager"
+
+          # State of DynamicUser services (e.g. mihomo's cache.db and geo
+          # data). systemd refuses to use this directory unless it is 0700.
+          {
+            directory = "/var/lib/private";
+            mode = "0700";
+          }
+
           # Saved Wi-Fi and VPN connections contain secrets.
           {
             directory = "/etc/NetworkManager/system-connections";

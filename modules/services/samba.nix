@@ -23,4 +23,8 @@
       };
     };
   };
+
+  # Keep the machine SID and any smbpasswd accounts across root resets.
+  # This is inert on hosts that do not enable impermanence.
+  environment.persistence."/persist".directories = [ "/var/lib/samba" ];
 }
