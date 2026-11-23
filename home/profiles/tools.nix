@@ -36,6 +36,5 @@
       enable = true;
       settings.notARepository = "skip";
     };
-    tmux.enable = true;
   };
 }
