@@ -2,15 +2,11 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 # List software packages provided by this repository.
 list:
-    @printf '%s\n' 'Available software:' '  goldendict-ng  Dictionary lookup application' '  spotify       Custom Spotify with Spicetify extensions' 'Coding agents from nixpkgs:' '  codex  claude-code  opencode  pi'
+    @printf '%s\n' 'Available software:' '  goldendict-ng  Dictionary lookup application' 'Coding agents from nixpkgs:' '  codex  claude-code  opencode  pi'
 
 # Install GoldenDict-ng from nixpkgs into the user profile.
 goldendict-ng:
     nix profile add nixpkgs#goldendict-ng
-
-# Build and install the custom Spotify package in the user profile.
-spotify:
-    nix profile add .#spotify-spiced
 
 # Install a coding agent from nixpkgs into the user profile.
 # unfree packages (e.g. claude-code) need the env var and --impure.

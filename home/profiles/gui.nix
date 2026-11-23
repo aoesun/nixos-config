@@ -9,6 +9,7 @@
 
   home.packages = with pkgs; [
     bitwarden-desktop
+    spotify-spiced
     wl-clipboard
     nautilus
     zed-editor

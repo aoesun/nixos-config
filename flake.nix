@@ -79,16 +79,23 @@
           "spotify"
         ];
 
-      # Expose the upstream flake package as pkgs.luvus so every Home Manager
-      # entry point can reference it without extra specialArgs.
-      luvusOverlay = _final: _prev: {
-        luvus = luvus.packages.${system}.default;
-      };
+      # Expose upstream flake packages and this repository's own packages
+      # through pkgs, so NixOS, Home Manager, and the standalone outputs all
+      # reference them the same way without extra specialArgs.
+      overlay =
+        final: _prev:
+        {
+          luvus = luvus.packages.${system}.default;
+        }
+        // import ./packages {
+          pkgs = final;
+          inherit spicetify-nix;
+        };
 
       pkgs = import nixpkgs {
         inherit system;
         config = nixpkgsConfig;
-        overlays = [ luvusOverlay ];
+        overlays = [ overlay ];
       };
 
       mkSystem =
@@ -103,7 +110,7 @@
           modules = [
             {
               nixpkgs.config = nixpkgsConfig;
-              nixpkgs.overlays = [ luvusOverlay ];
+              nixpkgs.overlays = [ overlay ];
             }
             home-manager.nixosModules.home-manager
             disko.nixosModules.disko
@@ -144,7 +151,8 @@
         tools = import ./home/profiles/tools.nix;
       };
 
-      # Custom packages are exported for explicit installation with `nix profile`.
+      # This repository's own packages, also reachable as pkgs.<name> through
+      # the overlay above.
       packages.${system} = import ./packages {
         inherit pkgs spicetify-nix;
       };
