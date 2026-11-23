@@ -14,6 +14,6 @@
   };
 
   # Keep the unit installed but do not start it at boot. Start it on demand
-  # with systemctl-tui or Cockpit.
+  # with systemctl-tui.
   systemd.services.mihomo.wantedBy = lib.mkForce [ ];
 }

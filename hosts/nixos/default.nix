@@ -14,7 +14,6 @@
     ../../modules/home-manager.nix
     ../../modules/virtualization/vmware-guest.nix
     ../../modules/services/mihomo.nix
-    ../../modules/services/cockpit.nix
     ../../modules/services/samba.nix
   ];
 
