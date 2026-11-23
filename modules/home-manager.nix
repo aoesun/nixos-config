@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   noctalia,
   username,
   ...
@@ -14,10 +12,7 @@
     users.${username}.imports = [
       ../home/users/${username}.nix
       ../home/profiles/default.nix
-    ]
-    ++ lib.optional (builtins.elem config.desktop.session [
-      "niri"
-      "both"
-    ]) ../home/profiles/niri.nix;
+      ../home/profiles/niri.nix
+    ];
   };
 }

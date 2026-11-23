@@ -15,11 +15,6 @@
     # compiled locally on this VM.
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
 
-    silentSDDM = {
-      url = "github:uiriansan/SilentSDDM";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     disko = {
       url = "github:nix-community/disko/latest";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -58,7 +53,6 @@
       nixpkgs,
       home-manager,
       noctalia,
-      silentSDDM,
       disko,
       impermanence,
       sops-nix,
@@ -104,7 +98,7 @@
           inherit system;
           specialArgs = {
             nixpkgsInput = nixpkgs;
-            inherit noctalia silentSDDM username;
+            inherit noctalia username;
             rimeIce = rime-ice;
           };
           modules = [

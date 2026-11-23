@@ -9,7 +9,7 @@
   programs.noctalia = {
     enable = true;
 
-    # Niri starts Noctalia itself, so it remains isolated from Plasma sessions.
+    # Niri starts Noctalia itself through spawn-at-startup in config.kdl.
     systemd.enable = false;
   };
 
