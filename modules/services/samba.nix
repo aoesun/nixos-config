@@ -1,4 +1,4 @@
-{ username, ... }:
+{ config, username, ... }:
 {
   services.samba = {
     enable = true;
@@ -13,7 +13,7 @@
       };
 
       Public = {
-        path = "/home/${username}/Public";
+        path = "${config.users.users.${username}.home}/Public";
         browseable = "yes";
         "read only" = "yes";
         "guest ok" = "yes";
