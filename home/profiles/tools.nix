@@ -20,6 +20,11 @@
   ];
 
   programs = {
+    direnv = {
+      enable = true;
+      # Already the HM default; set explicitly so the dependency is visible
+      nix-direnv.enable = true;
+    };
     fastfetch.enable = true;
     fzf = {
       enable = true;
