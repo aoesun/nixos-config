@@ -75,6 +75,11 @@
       zstyle ':completion:*' menu select
       zstyle ':completion:*' list-colors ''${(s.:.)LS_COLORS}
 
+      # Edit the current command line in $EDITOR, keeping the emacs keymap.
+      autoload -Uz edit-command-line
+      zle -N edit-command-line
+      bindkey '^X^E' edit-command-line
+
       # Keep autosuggestions from wrapping this widget, so $POSTDISPLAY stays intact.
       ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(_right_arrow_smart)
 
