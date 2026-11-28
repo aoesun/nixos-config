@@ -99,10 +99,10 @@ just home [ryuk-tools]  # 构建 standalone HM profile
 
 - **xdg-open**：niri 下它找不到默认应用时会退到浏览器。已用 `xdg.portal.xdgOpenUsePortal = true` 改成走 OpenURI portal。
 - **portal 的 Open With 选择器**：
-  - 候选只来自 `mimeinfo.cache`，没有“显示全部应用”，也没有“总是使用”开关。
+  - 候选只来自 `mimeinfo.cache`，没有“显示全部应用”，也没有“总是使用”开关。但同一类型连续 3 次选同一个应用后，portal 会记住并不再弹出（源码 `open-uri.c` 的 `DEFAULT_THRESHOLD`）。记录在 `~/.local/share/flatpak/db/desktop-used-apps`，不在 `mimeapps.list`，`xdg-mime query default` 查不到。
   - `Terminal=true` 的应用（如 `nvim.desktop`）选了也打不开，所以不要把终端程序设为默认应用。
   - 改用 `AppChooser = "gtk"` 试过，没有改善，已撤销。
-- **yazi**：内置的 `open` 和 `play` 都调用 `xdg-open`。音视频用自定义的 mpv opener，绕开 portal 选择器。
+- **yazi**：内置的 `open` 和 `play` 都调用 `xdg-open`，未关联的类型会弹 portal 选择器。音视频不再单独配 mpv opener：选 3 次 mpv 后 portal 就记住了，`mpv.desktop` 自带 `--player-operation-mode=pseudo-gui`。
 - **会话环境变量**：要重新登录才会进入新会话，且常驻进程保留启动时的环境。Luvus server 不随注销退出，需要在新开的 Ghostty 里运行 `luvus server restart`（会结束所有 pane）。
 - **核实环境变量**：`grep -r /etc` 会跳过符号链接，直接看 `/etc/set-environment`，或者用 `tr '\0' '\n' < /proc/$(pgrep -x niri)/environ`。
 - **xdg-mime**：`xdg-mime query default` 的参数是 MIME 类型，不是文件名。系统里没有 `gio`，需要时用 `nix shell nixpkgs#glib -c gio mime <类型>`。
