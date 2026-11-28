@@ -32,6 +32,8 @@
     };
     git = {
       enable = true;
+      # Registers LFS filters in the global gitconfig, replacing `git lfs install`
+      lfs.enable = true;
       settings.user = {
         name = "aoesun";
         email = "37470931+aoesun@users.noreply.github.com";
