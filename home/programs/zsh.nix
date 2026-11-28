@@ -90,6 +90,8 @@
       zle -N _right_arrow_smart
       bindkey '^[[C' _right_arrow_smart
       bindkey '^[OC' _right_arrow_smart
+      # Esc leaves the menu and undoes the inserted candidate.
+      bindkey -M menuselect '^[' undo
     '';
   };
 }
